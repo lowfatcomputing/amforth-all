@@ -1,0 +1,21 @@
+; ( n addr -- )
+; R( -- )
+; add value to content of RAM address
+VE_PLUSSTORE:
+    .db $02, "+!",0
+    .dw VE_HEAD
+    .set VE_HEAD = VE_PLUSSTORE
+XT_PLUSSTORE:
+    .dw PFA_PLUSSTORE
+PFA_PLUSSTORE:
+    ld zh, Y+
+    ld zl, Y+
+    ld temp1, Y+
+    ld temp0, Y+
+    ldd temp2, Z+0
+    ldd temp3, Z+1
+    add temp0, temp2
+    adc temp1, temp3
+    st    Z, temp0
+    std Z+1, temp1
+    rjmp DO_NEXT
