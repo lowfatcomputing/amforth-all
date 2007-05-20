@@ -7,9 +7,6 @@
 \ VERSION 1.1
 
 \ modified for amforth by Matthias Trute 2007
-\  - lowercase of keywords
-\  - omit leave
-\  - itype for constant string output
 
 hex
 

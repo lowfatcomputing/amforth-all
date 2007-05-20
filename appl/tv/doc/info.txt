@@ -1,0 +1,88 @@
+;************************************************************************************************************************
+;*															*
+;*		40 x 25 TV Terminal	/ TV Controller									*
+;*															*
+;*		Version 4.2												*
+;*															*
+;*		by Benedikt and A.Hauck	(modifikation fÃ¦r amforth)							*
+;*															*
+;*		siehe auch Datei: info.asm										*
+;*															*
+;*		Lizenz: GPL siehe Datei License.txt									*
+;*															*
+;************************************************************************************************************************
+;*															*
+;*	Diese Software erzeugt ein PAL Ãñhnliches Videosignal, das von allen von						*
+;*	mir getesteten TV GerÃñten aktzeptiert wird.									*
+;*	Somit lassen sich beliebige Texte darstellen. Dank vollstÃñndigem ASCII 						*
+;*	Zeichensatz sind auch ASCII Grafiken mÃglich.						 			*
+;*															*
+;*	Das besondere an dieser Software: Das Timing wird per Timer gesteuert,						*
+;*	der AVR kann daher nebenbei problemlos andere Aufgaben erledigen, da						*
+;*	die Bilderzeugung lediglich etwa 60% der CPU Leistung benÃtigt.							*
+;*	Die Sync Signale werden vollstÃñndig per Timer im PWM Modus erzeugt,						*
+;*	die Bildausgabe erfolgt im Interrupt mit automatischer Jitter-							*
+;*	kompensation (Idee von Bernhard Schulz).									*
+;*	Das Hauptprogramm darf also den Interrupt um bis zu 10 Takte blockieren.					*
+;*	Im Hauptprogramm darf jede beliebige Software laufen, solange diese mit						*
+;*	den freien Registern und dem wenigen SRAM auskommt.								*
+;*															*
+;*															*
+;*	Fuse Bit High: 11001001	= 0XC9	(CKOPT enabled)									*
+;*	Fuse Bit Low:  01101110	= 0x6E	(externer Quarz, BOD enabled)							*
+;*															*
+;*	IO Pins:													*
+;*	---------													*
+;*															*
+;*	Bei Mega 8 :													*
+;*	-----------------------												*
+;*	PB3/MOSI	PIN17			Pixeldaten: Ã¦ber 330Ohm an Ausgang					*
+;*	PB4/MISO	PIN18			DNU (muss frei gelassen werden)						*
+;*	PB5/SCK		PIN19			DNU (muss frei gelassen werden)						*
+;*	XTAL1		PIN9			16MHz Quarz								*	
+;*	XTAL2		PIN10			16MHz Quarz								*	
+;*	PB2/OC1B	PIN16			Sync Ausgang: Ã¦ber 1kOhm an Ausgang					*	
+;*															*
+;*	Bei Mega 16 oder 32 :												*
+;*	-----------------------												*
+;*	PB4/SS		PIN5			DNU (muss frei gelassen werden)						*
+;*	PB5/MOSI	PIN6			Pixeldaten: Ã¦ber 330Ohm an Ausgang					*
+;*	PB6/MISO	PIN7			DNU (muss frei gelassen werden)						*
+;*	PB7/SCK		PIN8			DNU (muss frei gelassen werden)						*
+;*	XTAL2		PIN12			16MHz Quarz								*
+;*	XTAL1		PIN13			16MHz Quarz								*
+;*	PD4/OC1B	PIN18			Sync Ausgang: Ã¦ber 1kOhm an Ausgang					*
+;*															*
+;*	Modifiziert von Alexander Hauck (alexander.hauck @ gmx.net) fÃ¦r amforth v1.8 und hÃher				*
+;*															*
+;************************************************************************************************************************
+;* Schema:                                                                                                              *
+;* -------                                                                                                              *
+;*                                                                                                                      *
+;* Mega16/32                                                                                                            *
+;*                                                                                                                      *
+;* PIN18 >----[1kOhm]-----+                                                                                             *
+;*                        |                                                                                             *
+;*                        +----------------------->>>> Cynch-Eingang-TV (SIGNAL)                                        *
+;*                        |                                                                                             *
+;* PIN06 >----[330Ohm]----+              +-------->>>> Cynch-Eingang-TV (MASSE)                                         *
+;*                                       |                                                                              *
+;* PIN11 >-------------------------------+                                                                              *
+;*                                                                                                                      *
+;*                                                                                                                      *
+;* Mega8 (evtl auch Mega168 - nicht getestet)                                                                           *
+;*                                                                                                                      *
+;* PIN16 >----[1kOhm]-----+                                                                                             *
+;*                        |                                                                                             *
+;*                        +----------------------->>>> Cynch-Eingang-TV (SIGNAL)                                        *
+;*                        |                                                                                             *
+;* PIN17 >----[330Ohm]----+              +-------->>>> Cynch-Eingang-TV (MASSE)                                         *
+;*                                       |                                                                              *
+;* PIN08 >-------------------------------+                                                                              *
+;*                                                                                                                      *
+;************************************************************************************************************************
+;* Zur einbindung in amforh:                                                                                            *
+;* siehe Datei amforth.asm                                                                                              *
+;************************************************************************************************************************
+
+

@@ -59,20 +59,20 @@ variable xonxoff
 
 \ activate xonxoff 
 : xonxoff0
-    ['] x-key? 'key? !
-    ['] x-key  'key  !
-    ['] x-/key '/key !
+    ['] x-key? is key?
+    ['] x-key  is key 
+    ['] x-/key is /key
     
-    ['] x-emit? 'emit? !
-    ['] x-emit  'emit  !
+    ['] x-emit? is emit?
+    ['] x-emit  is emit 
 ;
 
 \ restore default settings
 : /xonxoff0
-    ['] rx0? 'key? !
-    ['] rx0  'key  !
-    ['] noop '/key !
+    ['] rx0? is key?
+    ['] rx0  is key 
+    ['] noop is /key
     
-    ['] tx0? 'emit? !
-    ['] tx0  'emit  !
+    ['] tx0? is emit?
+    ['] tx0  is emit !
 ;
