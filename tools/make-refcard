@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 
-my $version = "2.0";
+my $version = "2.1";
 
 my %XT;
 my %VOC;
@@ -13,7 +13,7 @@ my %RSTACK;
 my %CATEGORY;
 
 my $texdir="../doc";
-my $asmdir="../trunk/words";
+my $asmdir="../words";
 
 sub readASM {
     my ($filename) = @_;
@@ -120,12 +120,10 @@ sub latex_head {
 \\usepackage{supertabular}
 
 \\setlength{\\parindent}{0cm}
-%\\setlength{\\textwidth}{16cm}
 \\setlength{\\oddsidemargin}{0cm}
 \\setlength{\\topmargin}{-1cm}
 \\setlength{\\headheight}{0cm}
 \\setlength{\\headsep}{0cm}
-%\\setlength{\\textheight}{25.7cm}
 \\def\\colsa{p{1cm}p{4cm}}
 \\def\\colsb{p{2.4cm}p{4cm}}
 \\def\\colsc{p{1.5cm}p{4cm}}
@@ -136,19 +134,16 @@ sub latex_head {
 
 \\begin{footnotesize}
 \\section*{\\Large amforth $title Reference Card}
-\\begin{multicols}{3}";
+\\begin{multicols}{3}
+";
 }
 
 sub latex_foot {
     return "
 \\end{multicols}
 \\end{footnotesize}
-The current version of this reference card and the amforth software 
-can be found at the project homepage at \\url{http://amforth.sourceforge.net/}.
 \\end{document}";
 }
-
-
 
 sub printLaTeX {
     my ($title) = @_;

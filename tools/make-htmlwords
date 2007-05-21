@@ -10,8 +10,8 @@ my %STACK;
 my %DSTACK;
 my %RSTACK;
 
-my $htmldir="../doc/html/words";
-my $asmdir="../trunk/words";
+my $htmldir="../html/words";
+my $asmdir="../words";
 
 sub readASM {
     my ($filename) = @_;
@@ -117,6 +117,8 @@ sub used_by {
 	    # print "is a variable";
 	} elsif($xt=~/PFA_DOVALUE/) {
 	    # print "is a value";
+	} elsif($xt=~/PFA_DODEFER/) {
+	    # print "is a defer";
 	} elsif($xt=~/PFA_DOUSER/) {
 	    # print "   USER VARIABLE";
 	} elsif($xt=~/DO_COLON/) {
@@ -176,7 +178,8 @@ sub printHTML {
     my @VALUES    = ();
     my @USERVARS  = ();
     my @COLONS    = ();
-
+    my @DEFERS    = ();
+    
     foreach my $lbl (keys %XT) {
 	my $xt  = $XT{$lbl};
 	my $voc = $VOC{$lbl};
@@ -210,6 +213,15 @@ sub printHTML {
 		( $offset ) value $voc
 </pre>";
 	    push @VALUES, $lbl;
+	} elsif($xt=~/PFA_DODEFER/) {
+	    my $offset = 0;
+	    if ($ASM=~/\.dw\s+(\d+)/) {
+		$offset = $1;
+	    }
+	    print HTML "<pre>
+		( $offset ) defer $voc
+</pre>";
+	    push @DEFERS, $lbl;
 	} elsif($xt=~/PFA_DOUSER/) {
 	    # print "   USER VARIABLE";
 	    my $offset = 0;
@@ -326,6 +338,16 @@ sub printHTML {
     foreach my $variable (sort @USERVARS) {
 	print HTML format_xt($variable)."\n";
 	print INDEX format_xt($variable)."\n";
+    }
+    print HTML html_foot;
+    close(HTML);
+
+    print INDEX "<h1>Defered Words</h1>";
+    open(HTML, ">$htmldir/defer.php");
+    print HTML html_head("Defered Words");
+    foreach my $variable (sort @DEFERS) {
+	print HTML format_xt($variable)."\n";
+	print INDEX format_xt($variable) ."\n";
     }
     print HTML html_foot;
     close(HTML);

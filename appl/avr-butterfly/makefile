@@ -11,7 +11,7 @@ PP=-c stk200  -P /dev/parport0
 JTAG=-c jtag2 -P /dev/ttyUSB2
 
 bf: bf.hex
-	$(AVRDUDE) $(USB) -p atmega169 -e -U flash:w:bf.hex:i -U eeprom:w:bf.eep.hex:i
+	$(AVRDUDE) $(PP) -p atmega169 -e -U flash:w:bf.hex:i -U eeprom:w:bf.eep.hex:i
 
 bf.hex: bf.asm $(AMFORTH)/*.asm $(AMFORTH)/words/*.asm $(AMFORTH)/devices/*.asm 
 	$(AVRA) $(INCLUDE) --listmac -l bf.lst -m bf.map bf.asm
