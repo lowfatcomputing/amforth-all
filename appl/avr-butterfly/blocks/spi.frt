@@ -4,24 +4,24 @@ marker _spi_
 
 hex
 
-PORTB 1 0 lshift portpin SS \ if SPI slave
-PORTB 1 1 lshift portpin SCK
-PORTB 1 2 lshift portpin MOSI
-PORTB 1 3 lshift portpin MISO
+PORTB 0 portpin: SS \ if SPI slave
+PORTB 1 portpin: SCK
+PORTB 2 portpin: MOSI
+PORTB 3 portpin: MISO
 
 \ following is for butterfly dataflash
-PORTE 1 7 lshift portpin BF_DF_RESET
-PORTB 1 0 lshift portpin BF_DF_CS
+PORTE 7 portpin: BF_DF_RESET
+PORTB 0 portpin: BF_DF_CS
 
 
 \ enable spi
 : spi ( -- )
-    BF_DF_RESET mode_output
-    BF_DF_CS    mode_output
-    MOSI mode_output
-    SCK  mode_output
-    MISO mode_input
-    SS mode_output \ see appnotes, input could disturb SPI
+    BF_DF_RESET is_output
+    BF_DF_CS    is_output
+    MOSI is_output
+    SCK  is_output
+    MISO is_input
+    SS   is_output \ see appnotes, input could disturb SPI
     
     BF_DF_RESET off
     BF_DF_CS on
@@ -54,7 +54,7 @@ PORTB 1 0 lshift portpin BF_DF_CS
 
 \ transfer 1 byte via spi
 : spix ( tx cs -- rx )
-    \ toggle the chip select pin 
+    \ toggle the chip select pin, probably counter-productive
     dup on  ( -- tx cs )
     dup off ( -- tx cs )
     swap    ( -- cs tx )
