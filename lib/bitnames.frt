@@ -1,8 +1,6 @@
 \ Named Port Pins
 \ V 1.1 20.05.2007
 
-
-
 \ Code: Matthias Trute
 \ Text: M.Kalus
 
@@ -11,16 +9,12 @@
 \ And then puts the address of its port on stack too. 
 
 \ Use it this way:
-\ PD 7 portpin: PD7     ( define portD pin #7)
-\ PD7 is_output         ( set DDRD so that portD pin #7 is output)
-\ PD7 on                ( turn portD pin #7 on, i.e. set it high-level)
-\ PD7 off               ( turn portD pin #7 off, i.e. set it low-level)
-
+\ PORTD 7 portpin: PD.7  ( define portD pin #7)
+\ PD.7 is_output         ( set DDRD so that portD pin #7 is output)
+\ PD.7 on                ( turn portD pin #7 on, i.e. set it high-level)
+\ PD.7 off               ( turn portD pin #7 off, i.e. set it low-level)
 
 hex
-\ for example:
-2B constant PD    \ Port D in ATmega169
-2A constant DDRD  \ Data direction register of Port D
 
 \ At compiletime:
 \ Store combination of portaddress and bit number in a cell and give it a name.
