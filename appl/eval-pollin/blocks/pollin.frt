@@ -7,22 +7,28 @@ decimal
 \ wait some milliseconds
 : blinkdelay 250 0 do 1ms loop ;
 
-PORTD 1 5 lshift portpin led1
-PORTD 1 6 lshift portpin led2
+PORTD 5  portpin: led1
+PORTD 6  portpin: led2
 
-PORTD 1 2 lshift portpin key1
-PORTD 1 3 lshift portpin key2
-PORTD 1 4 lshift portpin key3
+PORTD 2 portpin: key1
+PORTD 3 portpin: key2
+PORTD 4 portpin: key3
+
+GICR  7 portpin: en_int1
+GICR  6 portpin: en_int0
+GICR  5 portpin: en_int2
 
 : portinit
-    led1 mode_output
-    led2 mode_output
-    key1 mode_input
-    key2 mode_input
-    key3 mode_input
+    led1 is_output
+    led2 is_output
+    key1 is_input
+    key2 is_input
+    key3 is_input
 
     05 MCUCR c! \ int0/1
-    C0 GICR  c! \ enable int0/1
+    en_int1 on
+    en_int0 on
+    en_int2 off
 ;
 
 \ test runs until a terminal-key is pressed
@@ -32,7 +38,7 @@ PORTD 1 4 lshift portpin key3
 : keys
     begin
         PIND c@
-	fc and
+	[ hex ] fc and
 	3 lshift
 	PORTD c!
     key? until
