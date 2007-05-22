@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 
-my $version = "2.1";
+my $version = "2.2";
 
 my %XT;
 my %VOC;
@@ -13,7 +13,7 @@ my %RSTACK;
 my %CATEGORY;
 
 my $texdir="../doc";
-my $asmdir="../words";
+my $asmdir="../trunk/words";
 
 sub readASM {
     my ($filename) = @_;
