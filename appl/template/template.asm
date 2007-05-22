@@ -1,6 +1,7 @@
 ; This is a template for an amforth project.
 ; The order of the entries must not be changed since
-; it is very important to the settings in the right order
+; it is very important that the settings are in the 
+; right order
 ;
 ; first is to include the macros from the amforth
 ; directory 
@@ -13,12 +14,12 @@
 .equ baud_rate = 9600
 
 ; the optional dictionary can
-;   - not be included, set to 0 (tero)
+;   - not be included, set to 0 (zero)
 ;   - be included in the rww section: set to 1 (one)
 ;   - be included in the nrww (bootsector) area: set to 2 (two)
 ; the optional dictionary can be quite large so putting
 ; it into the bootsector area does make sense for the bigger
-; atmeags only (ATmega32 and up)
+; atmegas only (ATmega32 and up)
 
 .set dict_optional=1
 
