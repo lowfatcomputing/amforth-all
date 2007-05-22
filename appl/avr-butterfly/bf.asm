@@ -6,6 +6,10 @@
 ; baud rate of terminal
 .equ baud_rate = 9600
 
+; size of return stack in bytes
+.equ rstacksize = 80
+
+
 .set dict_optional=1
 
 .include "devices/atmega169.asm"

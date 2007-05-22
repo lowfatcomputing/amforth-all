@@ -10,6 +10,10 @@
 ; amforth needs two essential parameters
 ; cpu clock in hertz
 .equ cpu_frequency = 8000000
+
+; size of return stack in bytes
+.equ rstacksize = 80
+
 ; initial baud rate of terminal
 .equ baud_rate = 9600
 

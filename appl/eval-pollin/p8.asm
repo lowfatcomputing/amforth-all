@@ -8,6 +8,9 @@
 ; baud rate of terminal
 .equ baud_rate = 9600
 
+; size of return stack in bytes
+.equ rstacksize = 80
+
 .include "devices/atmega168.asm"
 
   .set heap = ramstart

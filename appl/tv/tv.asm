@@ -18,6 +18,9 @@
 .equ cpu_frequency = 8000000
 ; baud rate of terminal
 .equ baud_rate = 9600
+; size of return stack in bytes
+.equ rstacksize = 80
+
 .include "macros.asm"
 .include "devices/atmega16.asm"
 

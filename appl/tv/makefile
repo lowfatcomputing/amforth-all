@@ -11,13 +11,13 @@ PP=-c stk200  -P /dev/parport0
 JTAG=-c jtag2 -P /dev/ttyUSB2
 
 tv: tv.hex
-	$(AVRDUDE) $(USB) -p atmega169 -e -U flash:w:tv.hex:i -U eeprom:w:tv.eep.hex:i
+	$(AVRDUDE) $(USB) -p atmega16 -e -U flash:w:tv.hex:i -U eeprom:w:tv.eep.hex:i
 
 tv.hex: tv.asm $(AMFORTH)/*.asm $(AMFORTH)/words/*.asm $(AMFORTH)/devices/*.asm 
 	$(AVRA) $(INCLUDE) --listmac -l tv.lst -m tv.map tv.asm
 
 tv.back:
-	$(AVRDUDE) $(USB) -p atmega169  -U flash:r:tv.hex:i -U eeprom:r:tv.eep.hex:i
+	$(AVRDUDE) $(USB) -p atmega16  -U flash:r:tv.hex:i -U eeprom:r:tv.eep.hex:i
 
 clean:
 	rm -f tv.hex tv.eep.hex tv.lst tv.map tv.cof tv.obj
