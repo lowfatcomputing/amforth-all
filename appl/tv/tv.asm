@@ -12,7 +12,7 @@
 ;*											*
 ;****************************************************************************************
 
-.equ dict_optional=2
+.equ dict_appl=2
 
 ; cpu clock in hertz
 .equ cpu_frequency = 8000000

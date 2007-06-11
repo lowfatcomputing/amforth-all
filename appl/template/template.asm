@@ -17,15 +17,15 @@
 ; initial baud rate of terminal
 .equ baud_rate = 9600
 
-; the optional dictionary can
+; the application specific dictionary can
 ;   - not be included, set to 0 (zero)
 ;   - be included in the rww section: set to 1 (one)
 ;   - be included in the nrww (bootsector) area: set to 2 (two)
-; the optional dictionary can be quite large so putting
-; it into the bootsector area does make sense for the bigger
-; atmegas only (ATmega32 and up)
+; this  dictionary can be quite large so putting
+; it into the bootsector area (NRWW) does make sense for the bigger
+; atmegas only (ATmega32 and up) only
 
-.set dict_optional=1
+.set dict_appl=1
 
 ; include the amforth device definition file. These
 ; files include the *def.inc from atmel internally.

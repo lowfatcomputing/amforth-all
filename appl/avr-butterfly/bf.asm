@@ -9,8 +9,7 @@
 ; size of return stack in bytes
 .equ rstacksize = 80
 
-
-.set dict_optional=1
+.set dict_appl=1
 
 .include "devices/atmega169.asm"
 

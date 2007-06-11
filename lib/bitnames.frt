@@ -1,5 +1,5 @@
 \ Named Port Pins
-\ V 1.1 20.05.2007
+\ V 1.2 09.06.2007
 
 \ Code: Matthias Trute
 \ Text: M.Kalus
@@ -11,8 +11,8 @@
 \ Use it this way:
 \ PORTD 7 portpin: PD.7  ( define portD pin #7)
 \ PD.7 is_output         ( set DDRD so that portD pin #7 is output)
-\ PD.7 on                ( turn portD pin #7 on, i.e. set it high-level)
-\ PD.7 off               ( turn portD pin #7 off, i.e. set it low-level)
+\ PD.7 high              ( turn portD pin #7 on, i.e. set it high-level)
+\ PD.7 low               ( turn portD pin #7 off, i.e. set it low-level)
 
 hex
 
@@ -28,7 +28,7 @@ hex
 ;
 
 \ Turn a port pin on, dont change the others.
-: on ( pinmask portadr -- )
+: high ( pinmask portadr -- )
     dup  ( -- pinmask portadr portadr )
     c@   ( -- pinmask portadr value )
     rot  ( -- portadr value pinmask )
@@ -38,7 +38,7 @@ hex
 ;
 
 \ Turn a port pin off, dont change the others.
-: off ( pinmask portadr -- )
+: low ( pinmask portadr -- )
     dup  ( -- pinmask portadr portadr )
     c@   ( -- pinmask portadr value )
     rot  ( -- portadr value pinmask )
@@ -52,12 +52,12 @@ hex
 
 \ Set DDRx so its corresponding pin is output.
 : is_output ( pinmask portadr -- )
-    1- on
+    1- high
 ;
 
 \ Set DDRx so its corresponding pin is input.
 : is_input  ( pinmask portadr -- )   
-    1- off
+    1- low
 ;
 
 \ finis
