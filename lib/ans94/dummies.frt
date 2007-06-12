@@ -14,10 +14,6 @@
     drop >in !
 ;
 
-: refill ( -- f )
-    -1
-;
-
 
 \ atmegas are always aligned
 : align ;

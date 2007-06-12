@@ -1,5 +1,5 @@
 \ Named Port Pins
-\ V 1.2 09.06.2007
+\ V 1.2 12.06.2007
 
 \ Code: Matthias Trute
 \ Text: M.Kalus
@@ -13,6 +13,7 @@
 \ PD.7 is_output         ( set DDRD so that portD pin #7 is output)
 \ PD.7 high              ( turn portD pin #7 on, i.e. set it high-level)
 \ PD.7 low               ( turn portD pin #7 off, i.e. set it low-level)
+\ PD.7 toggle            ( toggle portD pin #7 (high - low) with no delay)
 
 hex
 
@@ -45,6 +46,11 @@ hex
     invert and ( -- portadr new-value)
     swap ( -- new-value port)
     c!
+;
+
+\ toggle the pin
+: toggle ( pinmask portaddr -- )
+    over over high low 
 ;
 
 \ Only for PORTx bits, 

@@ -26,3 +26,8 @@
 
 : u.r ( u w -- )
       >r  <# #s #>  r> over - 0 max spaces type ;
+
+\ milliseconds
+: ms ( ms -- )
+    0 ?do 1ms loop
+;
