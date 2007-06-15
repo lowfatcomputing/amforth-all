@@ -1,5 +1,5 @@
 \ Named Port Pins
-\ V 1.2 12.06.2007
+\ V 1.2 15.06.2007
 
 \ Code: Matthias Trute
 \ Text: M.Kalus
@@ -10,10 +10,14 @@
 
 \ Use it this way:
 \ PORTD 7 portpin: PD.7  ( define portD pin #7)
-\ PD.7 is_output         ( set DDRD so that portD pin #7 is output)
 \ PD.7 high              ( turn portD pin #7 on, i.e. set it high-level)
 \ PD.7 low               ( turn portD pin #7 off, i.e. set it low-level)
-\ PD.7 toggle            ( toggle portD pin #7 (high - low) with no delay)
+\ PD.7 toggle            ( turn portD pin #7 high and low: one short pulse)
+\ the following words are for "real" IO pins only
+\ PD.7 pin_output        ( set DDRD so that portD pin #7 is output)
+\ PD.7 pin_input         ( set DDRD so that portD pin #7 is input)
+\ PD.7 pin_high?         ( true if pinD pin #7 is high)
+\ PD.7 pin_low?          ( true if pinD pin #7 is low)
 
 hex
 
@@ -54,16 +58,25 @@ hex
 ;
 
 \ Only for PORTx bits, 
-\ because address of DDRx is one less than address of PORTx. (ATmega169)
+\ because address of DDRx is one less than address of PORTx.
 
 \ Set DDRx so its corresponding pin is output.
-: is_output ( pinmask portadr -- )
+: pin_output ( pinmask portadr -- )
     1- high
 ;
 
 \ Set DDRx so its corresponding pin is input.
-: is_input  ( pinmask portadr -- )   
+: pin_input  ( pinmask portadr -- )   
     1- low
+;
+
+\ PINx is two less of PORTx
+: pin_high? ( pinmask portaddr -- f)
+    1- 1- c@ and 0<>
+;
+
+: pin_low? ( pinmask portaddr -- f)
+    1- 1- c@ invert and 0<>
 ;
 
 \ finis
