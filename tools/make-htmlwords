@@ -10,8 +10,8 @@ my %STACK;
 my %DSTACK;
 my %RSTACK;
 
-my $htmldir="../html/words";
-my $asmdir="../words";
+my $htmldir="../doc/html/words";
+my $asmdir="../trunk/words";
 
 sub readASM {
     my ($filename) = @_;
@@ -65,14 +65,13 @@ sub readASM {
 	    my $i=0;
 	    $voc = "";
 	    foreach my $v (@voc) {
-		print "[$v]";
+		#print "[$v]";
 		next if $i++ == 0;
 		$voc .= chr(hex($1)) if $v=~/\$([\da-fA-F]+)/;
 		$voc .= $1 if $v=~/"(\S+)"/;
 	    }
 	    $state = "vocabulary entry found";
 	    $STACK{$lbl} = $stack;
-
 	    next;
 	}
 	if($line=~/^XT_(.*)/){
@@ -88,8 +87,8 @@ sub readASM {
 	    $DSTACK{$lbl} = $dstack;
 	    $RSTACK{$lbl} = $rstack;
 
-	    $XT{$lbl} = $xt;
-	    $VOC{$lbl} = $voc;
+	    $XT{"$lbl"} = $xt;
+	    $VOC{"$lbl"} = $voc;
             $DESCRIPTION{$lbl} = $description;
 	    $state = "parsing_body";
 	    next;
@@ -146,7 +145,7 @@ sub format_xt {
 	$voc = $VOC{$xt};
 	$voc =~ s/>/&gt;/g;
 	$voc =~ s/</&lt;/g;
-	$voc =  "&nbsp;" x $indent . " <a href=\"$xt.php\">$voc</a> "
+	$voc =  "&nbsp;" x $indent . " <a href=\"$xt.php\">$voc</a> ";
     }
     return $voc;
 }
@@ -253,6 +252,12 @@ sub printHTML {
 		    next;
 		}
 
+		if($state =~/print_compile (.*)/) {
+		    print HTML "\n<br>" .format_xt($1) . "\n<br>";
+		    $state = "normal";
+		    next;
+		}
+
 		if($state =~/print_string/) {
 		    $number = format_xt($number) if $number=~/XT_/;
 		    print HTML  format_xt("sliteral") . $number;
@@ -270,15 +275,18 @@ sub printHTML {
 		    $state = "print_number";
 		    next;
 		}
+		if($curxt=~/XT_COMPILE/) {
+		    $state = "print_compile $curxt";
+		}
 		if($curxt=~/XT_SLITERAL/) {
 		    $state = "print_string";
 		    next;
 		}
-
 		if($curxt=~/XT_DO.*BRANCH/) {
 		    $state = "print_jump $curxt";
 		    next;
 		}
+
 		if($curxt=~/XT_DO.*LOOP/) {
 		    $state = "print_jump $curxt";
 		    next;
