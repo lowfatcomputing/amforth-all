@@ -26,9 +26,9 @@ GICR  5 portpin: en_int2
     key3 is_input
 
     05 MCUCR c! \ int0/1
-    en_int1 on
-    en_int0 on
-    en_int2 off
+    en_int1 high
+    en_int0 high
+    en_int2 low
 ;
 
 \ test runs until a terminal-key is pressed
@@ -47,16 +47,16 @@ GICR  5 portpin: en_int2
 
 
 : blink ( -- )
-  led1 on blinkdelay
-  led2 on blinkdelay
-  led2 off blinkdelay
-  led1 off blinkdelay
+  led1 high blinkdelay
+  led2 high blinkdelay
+  led2 low blinkdelay
+  led1 low blinkdelay
 ;
 
 : led1blink
-  led1 on
+  led1 high
   blinkdelay
-  led1 off
+  led1 low
 ;
 
 \ simple lights on/off

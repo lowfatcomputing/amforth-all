@@ -14,8 +14,8 @@
 \ PD.7 low               ( turn portD pin #7 off, i.e. set it low-level)
 \ PD.7 toggle            ( turn portD pin #7 high and low: one short pulse)
 \ the following words are for "real" IO pins only
-\ PD.7 pin_output        ( set DDRD so that portD pin #7 is output)
-\ PD.7 pin_input         ( set DDRD so that portD pin #7 is input)
+\ PD.7 is_output         ( set DDRD so that portD pin #7 is output)
+\ PD.7 is_input          ( set DDRD so that portD pin #7 is input)
 \ PD.7 pin_high?         ( true if pinD pin #7 is high)
 \ PD.7 pin_low?          ( true if pinD pin #7 is low)
 
@@ -61,12 +61,12 @@ hex
 \ because address of DDRx is one less than address of PORTx.
 
 \ Set DDRx so its corresponding pin is output.
-: pin_output ( pinmask portadr -- )
+: is_output ( pinmask portadr -- )
     1- high
 ;
 
 \ Set DDRx so its corresponding pin is input.
-: pin_input  ( pinmask portadr -- )   
+: is_input  ( pinmask portadr -- )   
     1- low
 ;
 

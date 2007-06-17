@@ -8,8 +8,8 @@
 .include "macros.asm"
 
 ; amforth needs two essential parameters
-; cpu clock in hertz
-.equ cpu_frequency = 8000000
+; cpu clock in hertz, 1MHz is factory default
+.equ cpu_frequency = 1000000
 
 ; size of return stack in bytes
 .equ rstacksize = 80
@@ -29,7 +29,7 @@
 
 ; include the amforth device definition file. These
 ; files include the *def.inc from atmel internally.
-.include "devices/atmega169.asm"
+.include "devices/atmega16.asm"
 
 ; change these settings only if you know what you do.
   .set heap = ramstart

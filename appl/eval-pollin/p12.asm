@@ -4,14 +4,14 @@
 .equ dict_appl=1
 
 ; cpu clock in hertz
-.equ cpu_frequency = 8000000
+.equ cpu_frequency = 12000000
 ; baud rate of terminal
 .equ baud_rate = 9600
 
 ; size of return stack in bytes
 .equ rstacksize = 80
 
-.include "devices/atmega168.asm"
+.include "devices/atmega644.asm"
 
   .set heap = ramstart
   .set VE_HEAD = $0000
