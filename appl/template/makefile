@@ -10,7 +10,7 @@ AMFORTH=../../trunk
 
 # the MCU should be identical to the device
 # setting in template.asm
-MCU=atmega169
+MCU=atmega16
 
 # some programs
 AVRDUDE=avrdude
