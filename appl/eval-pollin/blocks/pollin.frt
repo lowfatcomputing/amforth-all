@@ -2,10 +2,13 @@
 \ boards from www.pollin.de
 \ needs the device register definitions loaded
 
+marker _pollin_
+
 decimal
 
 \ wait some milliseconds
-: blinkdelay 250 0 do 1ms loop ;
+: ms 0 ?do 1ms loop ;
+: blinkdelay 250 ms ;
 
 PORTD 5  portpin: led1
 PORTD 6  portpin: led2
