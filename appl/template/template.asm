@@ -1,4 +1,8 @@
 ; This is a template for an amforth project.
+; The amforth system generated works on atmegas
+; with fuse factory default settings. At least 
+; for the ATmega16 
+;
 ; The order of the entries must not be changed since
 ; it is very important that the settings are in the 
 ; right order
