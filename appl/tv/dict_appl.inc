@@ -21,3 +21,5 @@
 
 .include "words/leave.asm"
 .include "words/qdo.asm"
+
+.include "words/applturnkey.asm"
