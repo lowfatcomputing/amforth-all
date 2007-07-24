@@ -22,8 +22,6 @@
 : ? ( addr -- )
     @ . ;
 
-: spaces ( u -- ) ?dup if 0 do space loop then ;
-
 : u.r ( u w -- )
       >r  <# #s #>  r> over - 0 max spaces type ;
 
