@@ -1,7 +1,5 @@
 \ adc routines
 
-marker _adc_
-
 hex
 
 \ butterfly has a port to turn on/off peripheral power supply
@@ -18,9 +16,9 @@ ADCSRA 6 portpin: ADSC
 
 \ init adc subsystem
 : adc ( scaler channel -- )
-    ADMUX c!          ( -- scaler )
+    ADMUX c!        ( -- scaler )
     VCP is_output   ( -- scaler )
-    VCP on
+    VCP high
     log2  2 max   \ lowest 3 bits but at least 2
     1 7 lshift or \ msb
     ADCSRA c!
@@ -28,7 +26,7 @@ ADCSRA 6 portpin: ADSC
 
 \ turn off adc subsubsystem
 : /adc ( -- )
-    VCP off
+    VCP low
 ;
 
 \ wait until the adc is finished
@@ -42,19 +40,19 @@ ADCSRA 6 portpin: ADSC
 \ fetch the value of the initialized adc channel
 : adc@ ( -- adc )
     VCP is_output ( -- )
-    VCP on          ( -- )
-    ADEN on         ( -- )
-    ADSC on \ start converter
+    VCP high      ( -- )
+    ADEN high     ( -- )
+    ADSC high   \ start converter
     waitadc         ( -- )
     0               ( -- 0 )
     8 0 do          ( -- n )
-	ADSC on     ( -- n )
+	ADSC high   ( -- n )
 	waitadc     ( -- n )
 	ADCL c@	ADCH c@ 8 lshift + ( -- n adc_i )   
 	+           ( -- n )
     loop            ( -- n )
     3 rshift        ( -- adc )
-    VCP off         ( -- adc )
+    VCP low         ( -- adc )
 ;
 
 decimal
