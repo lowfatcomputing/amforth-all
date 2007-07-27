@@ -1,6 +1,6 @@
 # user modifiable secion is up here
 
-#AMFORTH=../../releases/1.8
+#AMFORTH=../../releases/2.2
 AMFORTH=../../trunk
 AVRDUDE=avrdude
 AVRA=/opt/cdk4avr/bin/avra
