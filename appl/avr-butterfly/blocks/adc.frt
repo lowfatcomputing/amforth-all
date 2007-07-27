@@ -18,9 +18,9 @@ ADCSRA 6 portpin: ADSC
 
 \ init adc subsystem
 : adc ( scaler channel -- )
-    ADMUX c!        ( -- scaler )
+    ADMUX c!          ( -- scaler )
     VCP is_output   ( -- scaler )
-    VCP high
+    VCP on
     log2  2 max   \ lowest 3 bits but at least 2
     1 7 lshift or \ msb
     ADCSRA c!
@@ -28,7 +28,7 @@ ADCSRA 6 portpin: ADSC
 
 \ turn off adc subsubsystem
 : /adc ( -- )
-    VCP low
+    VCP off
 ;
 
 \ wait until the adc is finished
@@ -42,19 +42,19 @@ ADCSRA 6 portpin: ADSC
 \ fetch the value of the initialized adc channel
 : adc@ ( -- adc )
     VCP is_output ( -- )
-    VCP high      ( -- )
-    ADEN high     ( -- )
-    ADSC high   \ start converter
+    VCP on          ( -- )
+    ADEN on         ( -- )
+    ADSC on \ start converter
     waitadc         ( -- )
     0               ( -- 0 )
     8 0 do          ( -- n )
-	ADSC high   ( -- n )
+	ADSC on     ( -- n )
 	waitadc     ( -- n )
 	ADCL c@	ADCH c@ 8 lshift + ( -- n adc_i )   
 	+           ( -- n )
     loop            ( -- n )
     3 rshift        ( -- adc )
-    VCP low         ( -- adc )
+    VCP off         ( -- adc )
 ;
 
 decimal

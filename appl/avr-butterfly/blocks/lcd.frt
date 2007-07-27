@@ -1,5 +1,7 @@
 \ ***** lcd look-up table for AVR Butterfly ***** 
 
+hex
+
 create sgmt \ segment lookup table
 0A51 , 2A80 , 0000 , 0A00 , 0A51 , 0000 ,
 5559 , 0118 , 1e11 , 1b11 , 0b50 , 1b41 ,
