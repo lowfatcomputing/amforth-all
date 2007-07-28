@@ -22,11 +22,11 @@ GICR  6 portpin: en_int0
 GICR  5 portpin: en_int2
 
 : portinit
-    led1 is_output
-    led2 is_output
-    key1 is_input
-    key2 is_input
-    key3 is_input
+    led1 pin_output
+    led2 pin_output
+    key1 pin_input
+    key2 pin_input
+    key3 pin_input
 
     05 MCUCR c! \ int0/1
     en_int1 high
@@ -73,8 +73,8 @@ GICR  5 portpin: en_int2
 
 \ interrupt processing takes a long time, do not
 \ press the key while it runs...
-' led1blink 1 int!
-' noop 2 int!
+\ ' led1blink 1 int!
+\ ' noop 2 int!
 
 \ autoconfig the i/o ports
 \ ' portinit 'turnkey e!
