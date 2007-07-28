@@ -28,11 +28,12 @@ variable tick
 \ initialize and start the timer.
 : 32kHz ( -- )
     \ Set timer 2 to asyncronous mode (32.768KHz crystal)
-    1 3 lshift ASSR c!
+    [ 1 3 lshift ] literal ASSR c!
 
     \ Start with prescaler 128
+    [
     1 0 lshift 
-    1 2 lshift or TCCR2A c!
+    1 2 lshift or ] literal TCCR2A c!
 
     \ Wait until timer 2's external 32.768KHz crystal is stable
     begin
