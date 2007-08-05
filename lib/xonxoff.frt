@@ -58,7 +58,7 @@ variable xonxoff
 ;
 
 \ activate xonxoff 
-: xonxoff0
+: +xonxoff
     ['] x-key? is key?
     ['] x-key  is key 
     ['] x-/key is /key
@@ -68,7 +68,7 @@ variable xonxoff
 ;
 
 \ restore default settings
-: /xonxoff0
+: -xonxoff
     ['] rx0? is key?
     ['] rx0  is key 
     ['] noop is /key
