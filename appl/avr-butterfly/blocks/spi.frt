@@ -44,7 +44,7 @@ C constant SPI3
 ;
 
 \ turn off spi
-: /spi ( - )
+: -spi ( - )
     0 SPCR c!
 ;
 

@@ -26,7 +26,7 @@ variable tick
 ;
 
 \ initialize and start the timer.
-: 32kHz ( -- )
+: +32kHz ( -- )
     \ Set timer 2 to asyncronous mode (32.768KHz crystal)
     [ 1 3 lshift ] literal ASSR c!
 
@@ -51,10 +51,11 @@ variable tick
     1 TIMSK2 c!
 ;
 
-: /32kHz 
-    \ Turn off interrupt
+\ Turn off interrupt
+: -32kHz 
     0 TIMSK2 c!
     \ Turn off timer 2 asynchronous mode
     ASSR c@
     1 3 lshift invert and ASSR c!
+    ['] noop OVF2addr int!
 ;

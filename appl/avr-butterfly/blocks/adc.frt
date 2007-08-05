@@ -17,7 +17,7 @@ ADCSRA 6 portpin: ADSC
 2 constant BF_LIGHT
 
 \ init adc subsystem
-: adc ( scaler channel -- )
+: +adc ( scaler channel -- )
     ADMUX c!          ( -- scaler )
     VCP pin_output   ( -- scaler )
     VCP high
@@ -27,7 +27,7 @@ ADCSRA 6 portpin: ADSC
 ;
 
 \ turn off adc subsubsystem
-: /adc ( -- )
+: -adc ( -- )
     VCP low
 ;
 
@@ -79,9 +79,8 @@ decimal
     (  60 ) 187 ,   0 ,
 
 : bf_temp ( -- temp )
-    [ decimal ] 128 BF_TEMP adc
-    adc@ ( -- adc )
-    /adc
+    [ decimal ] 128 BF_TEMP 
+    +adc adc@ -adc
     [ decimal ] -16 >r
     bf_temps
     swap
@@ -98,13 +97,11 @@ decimal
 ;
 
 : bf_light ( -- light )
-    128 BF_LIGHT adc
-    adc@
-    /adc
+    128 BF_LIGHT 
+    +adc adc@ -adc
 ;
 
 : bf_voltage ( -- voltage )
-    128 BF_VOLTAGE adc
-    adc@
-    /adc
+    128 BF_VOLTAGE 
+    +adc adc@ -adc
 ;
