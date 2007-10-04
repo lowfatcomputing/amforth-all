@@ -5,12 +5,14 @@
 ;
 
 : u.r ( u w -- )
-      >r  <# #s #>  r> over - 0 max spaces type ;
+      >r  s>d <# #s #>  ( -- addr n )
+      r> over ( -- addr n w n )
+      - 0 max spaces type ;
 
 
 \ dump flash content
 : idump ( addr len -- )
-    hex
+    base @ >r hex
     0 do
 	i 
 	    over +  dup 5 u.r
@@ -18,17 +20,23 @@
 	    cr
     loop
     drop
+    r> base !
 ;
 
 : .(  \ (s -- )
-   char ) parse type
+   [char] ) word count type
 ; immediate
 
 \ dump free ressources
 : .res ( -- ) 
-	." free FLASH cells  " unused . cr
-	." free RAM cells    " sp@ here - . cr
-	-" used EEPROM cells " edp e@ . cr
-	." used data stack   " depth . cr
-	-" used return stack " rp0 rp@ - . cr
-;	." free return stack " rp@ sp0 - . cr
+    base @ >r
+    decimal
+	." free FLASH cells      " unused . cr
+	." free RAM cells        " sp@ heap e@ - . cr
+	." used EEPROM cells     " edp e@ . cr
+	." used data stack cells " depth . cr
+	." used return stack     " rp0 rp@ - 1- 1- . cr
+	." free return stack     " rp@ sp0 - 1+ 1+ . cr
+    r> base !
+;
+
