@@ -4,15 +4,6 @@
     -1
 ;
 
-: fill ( c-addr u c -- )
-    rot rot ( -- c c-addr u )
-    0 do
-	over over
-	c!
-	1+
-    loop 
-;
-
 \  converts the address of the xt into the parameter field address
 : >body ( xt -- pfa )
     1+
@@ -23,7 +14,9 @@
     @ . ;
 
 : u.r ( u w -- )
-      >r  <# #s #>  r> over - 0 max spaces type ;
+      >r  s>d <# #s #>  ( -- addr n )
+      r> over ( -- addr n w n )
+      - 0 max spaces type ;
 
 \ milliseconds
 : ms ( ms -- )

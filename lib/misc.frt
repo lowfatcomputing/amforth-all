@@ -4,11 +4,6 @@
     >r 1- over < swap r> 1+ < and 
 ;
 
-: u.r ( u w -- )
-      >r  s>d <# #s #>  ( -- addr n )
-      r> over ( -- addr n w n )
-      - 0 max spaces type ;
-
 
 \ dump flash content
 : idump ( addr len -- )

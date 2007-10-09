@@ -21,7 +21,7 @@ GICR  7 portpin: en_int1
 GICR  6 portpin: en_int0
 GICR  5 portpin: en_int2
 
-: portinit
+: +demoports
     led1 pin_output
     led2 pin_output
     key1 pin_input
