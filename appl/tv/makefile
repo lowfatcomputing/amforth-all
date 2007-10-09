@@ -6,7 +6,7 @@ AVRDUDE=avrdude
 AVRA=/opt/cdk4avr/bin/avra
 INCLUDE=-I ~/lib/avra -I $(AMFORTH)
 
-USB=-c avr911  -P /dev/ttyUSB1
+USB=-c avrisp2  -P /dev/ttyS1 -F
 PP=-c stk200  -P /dev/parport0
 JTAG=-c jtag2 -P /dev/ttyUSB2
 

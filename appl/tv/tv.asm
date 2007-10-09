@@ -12,7 +12,7 @@
 ;*											*
 ;****************************************************************************************
 
-.equ dict_appl=2
+.equ dict_appl=1
 
 ; cpu clock in hertz
 .equ cpu_frequency = 8000000
@@ -41,7 +41,7 @@
 ; Es sind 256 Zeichen * 8 Byte = 2048 Byte = 2048 / 2 = 1024 Worte
 
 .set pc_ = pc
-.equ TV_CharRom = high( nrww - 1024 ) * 256		;Char Rom Adresse
+.equ TV_CharRom = high( amforth_interpreter - 1024 ) * 256		;Char Rom Adresse
 .org TV_CharRom						;genau unter NRWW-
 .include "CharRom.asm"				;Sektion mit lowbyte=0
 .org pc_

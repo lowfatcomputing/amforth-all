@@ -33,18 +33,11 @@
 
 ; include the amforth device definition file. These
 ; files include the *def.inc from atmel internally.
-.include "devices/atmega16.asm"
+.include "devices/atmega168.asm"
 
 ; change these settings only if you know what you do.
   .set heap = ramstart
   .set VE_HEAD = $0000
-
-; an device specific initialization which cannot
-; be implemented in forth with it's TURNKEY vector.
-
-.org codestart
-device_init:
-    ret
 
 ; include the whole source tree.
 .include "amforth.asm"

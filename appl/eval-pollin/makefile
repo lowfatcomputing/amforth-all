@@ -4,10 +4,10 @@
 AMFORTH=../../trunk
 AVRDUDE=avrdude
 AVRA=/opt/cdk4avr/bin/avra
-INCLUDE=-I ~/lib/avra -I $(AMFORTH)
+MCU=atmega32
+INCLUDE=-I ~/lib/avra -I $(AMFORTH) -I $(AMFORTH)/devices/$(MCU)
 
 AVRASM=wine ~/projekte/avr/AvrAssembler2/avrasm2.exe
-
 
 USB=-c avr911  -P /dev/ttyUSB1
 PP=-c stk200  -P /dev/parport0
@@ -23,23 +23,22 @@ p16.back:
 	$(AVRDUDE) $(PP) -p atmega32  -U flash:r:p16.hex:i -U eeprom:r:p16.eep.hex:i
 
 p8: p8.hex
-	$(AVRDUDE) $(PP) -p atmega168 -e -U flash:w:p8.hex:i -U eeprom:w:p8.eep.hex:i
+	$(AVRDUDE) $(PP) -p atmega8 -e -U flash:w:p8.hex:i -U eeprom:w:p8.eep.hex:i
 
 p8.hex: p8.asm $(AMFORTH)/*.asm $(AMFORTH)/words/*.asm $(AMFORTH)/devices/*.asm 
 	$(AVRA) $(INCLUDE) --listmac -l p8.lst -m p8.map p8.asm
 
 p8.back:
-	$(AVRDUDE) $(PP) -p atmega168  -U flash:r:p8.hex:i -U eeprom:r:p8.eep.hex:i
+	$(AVRDUDE) $(PP) -p atmega8  -U flash:r:p8.hex:i -U eeprom:r:p8.eep.hex:i
 
 p12: p12.hex
-	$(AVRDUDE) $(PP) -p atmega168 -e -U flash:w:p8.hex:i -U eeprom:w:p8.eep.hex:i
+	$(AVRDUDE) $(PP) -p atmega8 -e -U flash:w:p8.hex:i -U eeprom:w:p8.eep.hex:i
 
 p12.hex: p12.asm $(AMFORTH)/*.asm $(AMFORTH)/words/*.asm $(AMFORTH)/devices/*.asm 
 	$(AVRASM) $(INCLUDE) -fI -v0 -e p12.eep.hex -l p12.lst p12.asm
 
 p12.back:
 	$(AVRDUDE) $(PP) -p atmega644  -U flash:r:p12.hex:i -U eeprom:r:p12.eep.hex:i
-
 
 clean:
 	rm -f p8.hex p8.eep.hex p8.lst p8.map p8.cof p8.obj

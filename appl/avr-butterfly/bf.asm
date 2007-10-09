@@ -16,8 +16,4 @@
   .set heap = ramstart
   .set VE_HEAD = $0000
 
-.org codestart
-device_init:
-    ret
-
 .include "amforth.asm"

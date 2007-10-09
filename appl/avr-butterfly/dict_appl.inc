@@ -7,7 +7,6 @@
 .include "words/dot-s.asm"
 .include "words/idump.asm"
 
-.include "words/abortstring.asm"
 .include "words/dotstring.asm"
 .include "words/squote.asm"
 
@@ -17,8 +16,7 @@
 .include "words/rdefer.asm"
 .include "words/is.asm"
 
-.include "words/leave.asm"
-.include "words/qdo.asm"
-
 .include "words/int-store.asm"
 .include "words/int-fetch.asm"
+
+.include "dict_compiler.inc"
