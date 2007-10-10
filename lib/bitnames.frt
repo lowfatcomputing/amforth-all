@@ -74,11 +74,11 @@ hex
 
 \ PINx is two less of PORTx
 : pin_high? ( pinmask portaddr -- f)
-    1- 1- c@ and 0<>
+    1- 1- c@ and
 ;
 
 : pin_low? ( pinmask portaddr -- f)
-    1- 1- c@ invert and 0<>
+    1- 1- c@ invert and
 ;
 
 \ finis
