@@ -1,6 +1,6 @@
 \ ansi terminal codes
 
-\ needds misc.frt (u.r)
+\ needds ans94/ans.frt (u.r)
 
 decimal
 
