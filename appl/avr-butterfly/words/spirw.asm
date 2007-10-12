@@ -14,4 +14,5 @@ PFA_SPIRW1:
     sbrs temp0, 7
     rjmp PFA_SPIRW1   ; wait until complete
     in_ tosl, SPDR
+    clr tosh
     jmp_ DO_NEXT
