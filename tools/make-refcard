@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 
-my $version = "2.4";
+my $version = "2.5";
 
 my %XT;
 my %VOC;
