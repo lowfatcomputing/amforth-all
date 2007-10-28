@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+
+<!ENTITY REFCARD SYSTEM "refcard.xml">
+
+]>
+
+<book>
+   <bookinfo>
+      <title>amforth - Forth for AVR ATmega mico controller</title>
+      <titleabbrev>amforth</titleabbrev>
+      <author>
+         <personname>
+            <firstname>Matthias</firstname>
+            <surname>Trute</surname>
+         </personname>
+         <email>mtrute@users.sourceforge.net</email>
+      </author>
+
+      <pubdate>2007</pubdate>
+      <copyright>
+         <year>2007</year>
+         <holder>Matthias Trute</holder>
+      </copyright>
+   </bookinfo>
+   <toc />
+   <chapter id="Overview">
+      <title>Overview</title>
+      <sect1 id="Introduction">
+         <title>Introduction</title>
+         <para>
+            amforth is a Forth system for the AVR Atmega micro
+            controller family. It works on the controller itself and
+            does not depend on any additional hard- or software.
+         </para>
+
+         <para>
+            amforth implements a large subset of the Forth standard
+            ANS94. Most of the CORE words and a few from the varios
+            extension word sets are implemented. The word set used in an
+            actual implementation can easily be changed.
+         </para>
+
+         <para>
+            The dictionary resides in the flash memory. The build-in
+            compiler extends this wordset directly.
+         </para>
+
+         <para>
+            amforth gives full access to (almost) all interrupts. The
+            interrupt handler routines are implemented as forth words.
+         </para>
+
+         <para>
+            amforth is published under the GNU General Public License
+            version 2.
+         </para>
+
+         <para>The name amforth has no special meaning.</para>
+      </sect1>
+      <sect1 id="History">
+         <title>History</title>
+         <para>
+            amforth is a new implementaion. The first code was written
+            in the summer of 2006. It is written "from scratch" using
+            the assembly language and forth itself.
+         </para>
+
+         <para>
+            The first lines of code were written with the AVR Studio and
+            it's simulator. Soon the switch to real hardware (some
+            evalation boards) and a linux based development was made.
+            The source code is suitable for both the AVR Studio and the
+            linux avr assembler avra url{avra.sourceforge.net}.
+         </para>
+
+      </sect1>
+
+      <sect1 id="Hardware">
+         <title>Fuses</title>
+         <para>
+            Amforth uses the self programming features of the ATmegas to
+            extend the dictionary. It is ok to use the factory default
+            settings plus changes for the oszillator settings.
+            Everything else should be changed with great care.
+         </para>
+      </sect1>
+   </chapter>
+
+   <chapter id="Architecture">
+      <title>Architecture</title>
+      <sect1 id="Architectur_Overview">
+         <title>Overview</title>
+
+         <para>
+            amforth is a 16 bit Forth implementing the indirect
+            threading model. The flash memory contains the whole
+            dictionary. Some EEPROM values are used to hold initial
+            values. The RAM contains buffers, variables and the stacks.
+         </para>
+
+         <para>
+            The compiler is a simple do-and-forget compiler without any
+            kind of optimization.
+         </para>
+
+         <para>
+            amforth uses most of the CPU registers to hold vital data
+            structures: The data stack pointer, the instruction pointer,
+            the user pointer, and the Top-Of-Stack cell. The hardware
+            stack is used as the return stack. Some registers are used
+            for temporary data in primitives.
+         </para>
+      </sect1>
+
+      <sect1 id="Architecture_VM">
+         <title>CPU -- Forth VM Mapping</title>
+         <para>
+            The Forth virtual machine uses the indirect theading model.
+            The default Forth registers are mapped as follows
+            <table>
+               <title>Register Mapping</title>
+               <tgroup cols="2">
+                  <thead>
+                     <row>
+                        <entry>Forth Register</entry>
+                        <entry>ATmega Register(s)</entry>
+                     </row>
+                  </thead>
+                  <tbody>
+                     <row>
+                        <entry>Word pointer W</entry>
+                        <entry>R26:R27</entry>
+                     </row>
+                     <row>
+                        <entry>Instruction Pointer IP</entry>
+                        <entry>XH:XL</entry>
+                     </row>
+                     <row>
+                        <entry>Return Stack Pointer RP</entry>
+                        <entry>SPH:SPL</entry>
+                     </row>
+                     <row>
+                        <entry>Data Stack Pointer DP</entry>
+                        <entry>YH:YL</entry>
+                     </row>
+                  </tbody>
+               </tgroup>
+            </table>
+            In addition the register pair ZH:ZL is used as a temporary
+            storage.
+         </para>
+
+         <sect2>
+            <title>Inner Interpreter</title>
+            <para>
+               The inner interpreter implements the indirect threading
+               execution with an interrupt handling extension.
+            </para>
+            <sect3>
+               <title>EXECUTE</title>
+               <para>
+                  Execute reads the address the IP currently points to
+                  and jumps to it.
+               </para>
+            </sect3>
+            <sect3>
+               <title>NEXT</title>
+               <para>
+                  The NEXT routine is the core of the inner interpreter.
+                  It performs two flash accesses, the second one is
+                  labeled as EXECUTE.
+               </para>
+
+               <para>
+                  The very first step in NEXT is to check whether an
+                  interrupt needs to handled. It is done by looking at
+                  the
+                  <code>T</code>
+                  flag in the machine status register. If it is set, the
+                  code jumps to the interrupt handling part. If the flag
+                  is cleared the normal NEXT routine runs.
+               </para>
+            </sect3>
+            <sect3>
+               <title>NEST</title>
+               <para>
+                  NEST (or DO_COLON) pushes the current IP to the return
+                  stack and loads the next flash from the Word Pointer
+                  into the IP. Then it continues with NEXT.
+               </para>
+            </sect3>
+            <sect3>
+               <title>UNNEST</title>
+               <para>
+                  The code for UNNEST is the word
+                  <code>EXIT</code>
+                  in the dictionary. It simply pops the IP from the
+                  return stack and jumps to NEXT.
+               </para>
+            </sect3>
+            <sect3>
+               <title>DO_DOES</title>
+               <para>
+                  This code is the runtime that is used by the code
+                  compiled by the forth word
+                  <code>DOES</code>
+                  . It it closly tight to the action performed by the
+                  code compiled by DOES. That code pushed the current
+                  address in the data field to the returnstack and jumps
+                  to DO_DOES. DO_DOES gets that address back, saves the
+                  current IP and sets the forth IP to the address it got
+                  from the stack. Finally it continues with NEXT.
+               </para>
+            </sect3>
+         </sect2>
+      </sect1>
+      <sect1 id="Core_System">
+         <title>Core System</title>
+
+         <sect2>
+            <title>Threading Model</title>
+            <para>
+               amforth uses the indirect (classic) threaded variant of
+               forth.
+            </para>
+         </sect2>
+         <sect2>
+            <title>Stacks</title>
+            <sect3>
+               <title>Data Stack</title>
+               <para>
+                  The data stack uses the CPU register pair yl:yh as
+                  it's data pointer. The Top-Of-Stack element (TOS) is
+                  in a register pair. Compared to a straight forward
+                  implementation this approach saves both code space and
+                  gives higher execution speed. Saving more stack
+                  elements does not really give any more profit (much
+                  more code and only little speed enhancements).
+               </para>
+               <para>
+                  The data stack starts at a configurable distant below
+                  the return stack (RAMEND) and grows downward.
+               </para>
+            </sect3>
+            <sect3>
+               <title>Return Stack</title>
+               <para>
+                  The Return Stack is the hardware stack of the
+                  controller. It is managed with push/pop instructions.
+                  The return stack starts at RAMEND und grows downward.
+               </para>
+            </sect3>
+         </sect2>
+         <sect2>
+            <title>Interrupts</title>
+            <para>
+               amforth routes the low level interrupts into the forth
+               inner interpreter. The inner interpreter switches the
+               execution to a predefined word if an interrupt occurs.
+               When that word finishes execution, the interrupted word
+               is continued. The interrupt handlers are completly normal
+               forth words without any stack effect.
+            </para>
+
+            <para>
+               The processing of the interrupts takes two steps: The
+               first one is responsible for the low level part. It is
+               called whenever an interrupt occurs. The code is the same
+               for all interrupts. It takes the number of the interrupt
+               from it's vector address and stores this in a RAM cell.
+               Then the low level ISR sets the <code>T</code>
+               flag in the status register of the controller. The inner
+               interpreter checks every time it is entered this flag and
+               if it is set it switches to interrupt handling at forth
+               level. This approach has an penalty of 2 CPU cycles for
+               checking and skipping the branch instructtion to the isr
+               forth code.
+            </para>
+
+            <para>
+               The ISR at forth level is a RAM based table much like the
+               low level interrupt table of the exection tokens
+               associated with the interrupt number.
+            </para>
+	    
+	    <para>
+	       Interrupts from hardware sources (such as the usart) may not
+	       work. The reason is that the interrupt source is not cleared
+	       within the generic ISR. This leads to an immediate
+	       re-interrupt. There is currently no solution but a custom
+	       ISR that clears the interrupt source and calls the
+	       main ISR. This code has to be run within the interrupt and
+	       cannot be (easily) turned into forth code, since the forth
+	       inner interpreter is not reentrant. <!-- maybe run an forth
+	       interpreter in background to handle interrupts? -->
+	    </para>
+         </sect2>
+         <sect2>
+            <title>Multitasking</title>
+            <para>
+               amforth does not really implement multitasking. It only
+               provides the basic framework for it. Within the IO words
+               the word PAUSE is called whenever possible. This word is
+               as a deferred word that is initialized to do nothing
+               (NOOP).
+            </para>
+         </sect2>
+      </sect1>
+      <sect1 id="Memory_Layout">
+         <title>Memory Layout</title>
+
+         <sect2>
+            <title>Flash</title>
+            <para>
+               The flash memory can be divided into 5 different
+               sections. The first section, starting at address 0,
+               contains the interrupt vector table for the low level
+               interrupt handling and a character string with the name
+               of the controller in plain text.
+            </para>
+
+            <para>
+               The next section is the initialization code block. It is
+               executed whenver the controller starts up. The code sets
+               up the basic infrastructure for the forth interpreter and
+               provides a compile time hook for application specific
+               initializations. This step is finished by calling the
+               forth interpreter with the word COLD as the entry word.
+            </para>
+
+            <para>
+               The 3rd section contains the low level interrupt handling
+               routines. The interrupt handler is very closly tight to
+               the inner interpreter.
+            </para>
+
+            <para>
+               The 4th section is the first part of the dictionary.
+               Nearly all colon words are located here. New words are
+               appended to this section.
+            </para>
+
+            <para>
+               The last section is identical to the boot loader section
+               of the ATmegas. It is also known as NRWW area. Here is
+               the heart of amforth: The inner interpreter and most of
+               the words coded in Assembly language.
+            </para>
+
+            <para>
+               The reason for this split is a technical one: to work
+               with a dictionary in flash the controller needs to write
+               to the flash. The ATmega architecture has such a
+               mechanism called self-programming by using a special
+               instruction. This instruction basically only works from
+               the boot loader section. amforth uses this instruction in
+               the word I!. Due to the fact that the self programming is
+               a lot more then only a simple instruction, amforth needs
+               most of the forth core system to achieve it. A side
+               effect is that amforth cannot co-exist with classic
+               bootloaders.
+            </para>
+            <para>
+               Atmegas can have more than 64 KB Flash. This requires
+               more than 16 bit address bit, which is more than the cell
+               size. For one type of those bigger atmegas there will be
+               another solution: Atmega128 Controllers. They can use the
+               whole address range with a little interpretation trick:
+               The flash addresses are in fact not byte addresses but
+               word addresses. Since amforth never deals with bytes but 
+	       cells it is seemlessly possible to use the whole address range
+               with a 16 bit cell. The Atmegas with 128 KBytes Flash
+               operate slower since the address interpretation does need
+               more code to access the flash (both read and write).
+            </para>
+            <para>
+	       The technique described above does not work for the 
+               Atmega256x. These controllers definitly need a bigger
+               cell size: 17 bits (or more).
+            </para>
+            <sect3>
+               <title>Flash Write</title>
+               <para>
+                  The word performing the actual flash write operation
+                  is I! (i-store). This word takes the value and the
+                  address of a single cell to be written to flash from
+                  the data stack. The address is a word address, not a
+                  byte address!
+               </para>
+               <para>
+                  The flash write strategy follows Atmel's appnotes.
+                  The first step is turning off all interrupts. Then the
+                  affected flash page is read into the flash page
+                  buffer. While doing the copying a check is performed
+                  whether a flash erase cycle is needed. The flash erase
+                  can be avoided if no bit is turned from 0 to 1. Only
+                  if a bit is switched from 0 to 1 a flash page erase
+                  operation has to be done. In the fourth step the new
+                  flash data is written and the flash is set back to
+                  normal operation and the interrupt flag is restored.
+               </para>
+               <para>
+                  This write strategy ensures that the flash has minimal
+                  flash erase cycles while extending the dictionary. In
+                  addition it keeps the forth system simple since it
+                  does not need to deal with page sizes or RAM based
+                  buffers for dictionary operations.
+               </para>
+	       <para>
+	          Some bootloader programs (namely the one on the ATUSBKEY
+		  demo board) provide an API to programs that need to write to
+		  flash. amforth can easily reconfigured to use it: Change the 
+		  word I! to call that API and re-arrange the dictionary layout 
+		  to not use the bootloader section at all.
+	       </para>
+            </sect3>
+         </sect2>
+         <sect2>
+            <title>EEPROM</title>
+            <para>
+               The build-in EEPROM contains vital dictionary pointer and
+               other persistant data. They need only a few EEPROM
+               cells. The remaining space is available for user
+               programs. The easiest way to use EEPROM is the use of
+               forth VALUEs. There intended design pattern (read often,
+               write seldom) is like that for the tyoical EEPROM usage.
+            </para>
+	    
+	    <para>
+	       Another usage for EEPROM cells is to hold execution tokens.
+	       The default system uses this for the turnkey vector. This
+	       is a eeprom variable that reads and executes the XT at
+	       runtime. It is based on the DEFER/IS standard. To define a
+	       deferred word in the EEPROM use the Edefer defintion word.
+	       The standard word IS is used to put a new XT into the vector.
+	    </para>
+	    
+	    <para>
+		Lowlevel space management is done through the the EDP variable.
+		This is not a forth value but a EEPROM based variable. To read the current
+		value an e@ operation must be used, changes are written back with
+		e!. It contains the highest EEPROM address currently allocated.
+		The name is based on the DP variable, which points to the highest
+		dictionary address.
+	    </para>
+	    
+         </sect2>
+         <sect2>
+            <title>RAM</title>
+            <para>
+               The RAM address space is divided into three sections: the
+               first 32 addresses are the CPU registers. Then come the
+               IO registers and extended IO registers and finally the
+               RAM itself.
+            </para>
+
+            <para>
+               amforth needs a few (real) RAM locations for it's internal data
+               structures. The biggest part are the buffers for the
+               terminal IO. RAM Memory is managed by the words VARIABLE
+               and ALLOT.
+            </para>
+
+            <para>
+               With amforth all three sections can be access using there
+               RAM address. That makes ist quite easy to work with words
+               like C@.
+            </para>
+         </sect2>
+      </sect1>
+
+   </chapter>
+   <chapter><title>Todos And Roadmap</title>
+    <para>
+    tbd
+    </para>
+   </chapter>
+<!--  &REFCARD; -->
+</book>
