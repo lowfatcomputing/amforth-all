@@ -43,7 +43,7 @@
 
          <para>
             The dictionary resides in the flash memory. The build-in
-            compiler extends this wordset directly.
+            compiler extends it directly.
          </para>
 
          <para>
@@ -95,12 +95,12 @@
          <para>
             amforth is a 16 bit Forth implementing the indirect
             threading model. The flash memory contains the whole
-            dictionary. Some EEPROM values are used to hold initial
+            dictionary. Some EEPROM cells are used to hold initial
             values. The RAM contains buffers, variables and the stacks.
          </para>
 
          <para>
-            The compiler is a simple do-and-forget compiler without any
+            The compiler is a classic do-and-forget compiler without any
             kind of optimization.
          </para>
 
@@ -169,14 +169,13 @@
                <para>
                   The NEXT routine is the core of the inner interpreter.
                   It performs two flash accesses, the second one is
-                  labeled as EXECUTE.
+		  accessed as EXECUTE.
                </para>
 
                <para>
                   The very first step in NEXT is to check whether an
                   interrupt needs to handled. It is done by looking at
-                  the
-                  <code>T</code>
+                  the <code>T</code>
                   flag in the machine status register. If it is set, the
                   code jumps to the interrupt handling part. If the flag
                   is cleared the normal NEXT routine runs.
@@ -204,8 +203,7 @@
                <para>
                   This code is the runtime that is used by the code
                   compiled by the forth word
-                  <code>DOES</code>
-                  . It it closly tight to the action performed by the
+                  <code>DOES</code>. It it closly tight to the action performed by the
                   code compiled by DOES. That code pushed the current
                   address in the data field to the returnstack and jumps
                   to DO_DOES. DO_DOES gets that address back, saves the
@@ -230,7 +228,7 @@
             <sect3>
                <title>Data Stack</title>
                <para>
-                  The data stack uses the CPU register pair yl:yh as
+                  The data stack uses the CPU register pair YH:YL as
                   it's data pointer. The Top-Of-Stack element (TOS) is
                   in a register pair. Compared to a straight forward
                   implementation this approach saves both code space and
@@ -274,7 +272,7 @@
                interpreter checks every time it is entered this flag and
                if it is set it switches to interrupt handling at forth
                level. This approach has an penalty of 2 CPU cycles for
-               checking and skipping the branch instructtion to the isr
+               checking and skipping the branch instruction to the isr
                forth code.
             </para>
 
@@ -322,56 +320,60 @@
 
             <para>
                The next section is the initialization code block. It is
-               executed whenver the controller starts up. The code sets
-               up the basic infrastructure for the forth interpreter and
-               provides a compile time hook for application specific
-               initializations. This step is finished by calling the
+               executed whenever the controller starts. The code sets
+               up the basic infrastructure for the forth interpreter. 
+               This step is finished by calling the
                forth interpreter with the word COLD as the entry word.
             </para>
 
             <para>
                The 3rd section contains the low level interrupt handling
                routines. The interrupt handler is very closly tight to
-               the inner interpreter.
+               the inner interpreter. It is located near the first section
+	       to use the faster relative jump instructions.
             </para>
 
             <para>
                The 4th section is the first part of the dictionary.
                Nearly all colon words are located here. New words are
-               appended to this section.
+               appended to this section. This section is filled with
+	       FFFF cells when flashing the controller initially.
             </para>
 
             <para>
                The last section is identical to the boot loader section
                of the ATmegas. It is also known as NRWW area. Here is
                the heart of amforth: The inner interpreter and most of
-               the words coded in Assembly language.
+               the words coded in Assembly language. 
             </para>
 
             <para>
                The reason for this split is a technical one: to work
                with a dictionary in flash the controller needs to write
-               to the flash. The ATmega architecture has such a
+               to the flash. The ATmega architecture provides a
                mechanism called self-programming by using a special
-               instruction. This instruction basically only works from
-               the boot loader section. amforth uses this instruction in
-               the word I!. Due to the fact that the self programming is
-               a lot more then only a simple instruction, amforth needs
-               most of the forth core system to achieve it. A side
+               instruction and a rather complex algorith. This instruction 
+	       only works in the boot loader/NRWW section. amforth uses this 
+	       instruction in the word I!. Due to the fact that the self 
+	       programming is a lot more then only a simple instruction, 
+	       amforth needs most of the forth core system to achieve it. A side
                effect is that amforth cannot co-exist with classic
-               bootloaders.
+               bootloaders. If a particular boot loader provides an API
+	       to enable applications call the flash write operation, amforth
+	       can be restructured to use it. Currently only very few and
+	       seldom used bootloaders exist that enable this feature.
             </para>
             <para>
                Atmegas can have more than 64 KB Flash. This requires
                more than 16 bit address bit, which is more than the cell
                size. For one type of those bigger atmegas there will be
-               another solution: Atmega128 Controllers. They can use the
-               whole address range with a little interpretation trick:
+               an solution with 16 bit cell size: Atmega128 Controllers. They 
+	       can use the whole address range with an interpretation:
                The flash addresses are in fact not byte addresses but
-               word addresses. Since amforth never deals with bytes but 
-	       cells it is seemlessly possible to use the whole address range
+               word addresses. Since amforth does not deal with bytes but 
+	       cells it is possible to use the whole address range
                with a 16 bit cell. The Atmegas with 128 KBytes Flash
-               operate slower since the address interpretation does need
+               operate slightly slower since the address interpretation does need
                more code to access the flash (both read and write).
             </para>
             <para>
@@ -407,13 +409,6 @@
                   does not need to deal with page sizes or RAM based
                   buffers for dictionary operations.
                </para>
-	       <para>
-	          Some bootloader programs (namely the one on the ATUSBKEY
-		  demo board) provide an API to programs that need to write to
-		  flash. amforth can easily reconfigured to use it: Change the 
-		  word I! to call that API and re-arrange the dictionary layout 
-		  to not use the bootloader section at all.
-	       </para>
             </sect3>
          </sect2>
          <sect2>
@@ -428,7 +423,7 @@
             </para>
 	    
 	    <para>
-	       Another usage for EEPROM cells is to hold execution tokens.
+	       Another use for EEPROM cells is to hold execution tokens.
 	       The default system uses this for the turnkey vector. This
 	       is a eeprom variable that reads and executes the XT at
 	       runtime. It is based on the DEFER/IS standard. To define a
