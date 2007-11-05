@@ -169,13 +169,14 @@
                <para>
                   The NEXT routine is the core of the inner interpreter.
                   It performs two flash accesses, the second one is
-		  accessed as EXECUTE.
+                  accessed as EXECUTE.
                </para>
 
                <para>
                   The very first step in NEXT is to check whether an
                   interrupt needs to handled. It is done by looking at
-                  the <code>T</code>
+                  the
+                  <code>T</code>
                   flag in the machine status register. If it is set, the
                   code jumps to the interrupt handling part. If the flag
                   is cleared the normal NEXT routine runs.
@@ -203,7 +204,8 @@
                <para>
                   This code is the runtime that is used by the code
                   compiled by the forth word
-                  <code>DOES</code>. It it closly tight to the action performed by the
+                  <code>DOES</code>
+                  . It it closly tight to the action performed by the
                   code compiled by DOES. That code pushed the current
                   address in the data field to the returnstack and jumps
                   to DO_DOES. DO_DOES gets that address back, saves the
@@ -267,7 +269,8 @@
                called whenever an interrupt occurs. The code is the same
                for all interrupts. It takes the number of the interrupt
                from it's vector address and stores this in a RAM cell.
-               Then the low level ISR sets the <code>T</code>
+               Then the low level ISR sets the
+               <code>T</code>
                flag in the status register of the controller. The inner
                interpreter checks every time it is entered this flag and
                if it is set it switches to interrupt handling at forth
@@ -281,18 +284,19 @@
                low level interrupt table of the exection tokens
                associated with the interrupt number.
             </para>
-	    
-	    <para>
-	       Interrupts from hardware sources (such as the usart) may not
-	       work. The reason is that the interrupt source is not cleared
-	       within the generic ISR. This leads to an immediate
-	       re-interrupt. There is currently no solution but a custom
-	       ISR that clears the interrupt source and calls the
-	       main ISR. This code has to be run within the interrupt and
-	       cannot be (easily) turned into forth code, since the forth
-	       inner interpreter is not reentrant. <!-- maybe run an forth
-	       interpreter in background to handle interrupts? -->
-	    </para>
+
+            <para>
+               Interrupts from hardware sources (such as the usart) may
+               not work. The reason is that the interrupt source is not
+               cleared within the generic ISR. This leads to an
+               immediate re-interrupt. There is currently no solution
+               but a custom ISR that clears the interrupt source and
+               calls the main ISR. This code has to be run within the
+               interrupt and cannot be (easily) turned into forth code,
+               since the forth inner interpreter is not reentrant.
+               <!-- maybe run an forth
+                  interpreter in background to handle interrupts? -->
+            </para>
          </sect2>
          <sect2>
             <title>Multitasking</title>
@@ -302,6 +306,17 @@
                the word PAUSE is called whenever possible. This word is
                as a deferred word that is initialized to do nothing
                (NOOP).
+            </para>
+         </sect2>
+
+         <sect2>
+            <title>Exception Handling</title>
+            <para>
+               amforth implements the CATCH/THROW exception handling.
+               The outmost catch frame is located at the interpreter
+               level in the word QUIT. If an exception with the value -1
+               or -2 is throws, QUIT will print a message and re-start
+               itself. Other values silently restart QUIT.
             </para>
          </sect2>
       </sect1>
@@ -320,31 +335,31 @@
 
             <para>
                The next section is the initialization code block. It is
-               executed whenever the controller starts. The code sets
-               up the basic infrastructure for the forth interpreter. 
-               This step is finished by calling the
-               forth interpreter with the word COLD as the entry word.
+               executed whenever the controller starts. The code sets up
+               the basic infrastructure for the forth interpreter. This
+               step is finished by calling the forth interpreter with
+               the word COLD as the entry word.
             </para>
 
             <para>
                The 3rd section contains the low level interrupt handling
                routines. The interrupt handler is very closly tight to
-               the inner interpreter. It is located near the first section
-	       to use the faster relative jump instructions.
+               the inner interpreter. It is located near the first
+               section to use the faster relative jump instructions.
             </para>
 
             <para>
                The 4th section is the first part of the dictionary.
                Nearly all colon words are located here. New words are
                appended to this section. This section is filled with
-	       FFFF cells when flashing the controller initially.
+               FFFF cells when flashing the controller initially.
             </para>
 
             <para>
                The last section is identical to the boot loader section
                of the ATmegas. It is also known as NRWW area. Here is
                the heart of amforth: The inner interpreter and most of
-               the words coded in Assembly language. 
+               the words coded in Assembly language.
             </para>
 
             <para>
@@ -352,32 +367,34 @@
                with a dictionary in flash the controller needs to write
                to the flash. The ATmega architecture provides a
                mechanism called self-programming by using a special
-               instruction and a rather complex algorith. This instruction 
-	       only works in the boot loader/NRWW section. amforth uses this 
-	       instruction in the word I!. Due to the fact that the self 
-	       programming is a lot more then only a simple instruction, 
-	       amforth needs most of the forth core system to achieve it. A side
-               effect is that amforth cannot co-exist with classic
-               bootloaders. If a particular boot loader provides an API
-	       to enable applications call the flash write operation, amforth
-	       can be restructured to use it. Currently only very few and
-	       seldom used bootloaders exist that enable this feature.
+               instruction and a rather complex algorith. This
+               instruction only works in the boot loader/NRWW section.
+               amforth uses this instruction in the word I!. Due to the
+               fact that the self programming is a lot more then only a
+               simple instruction, amforth needs most of the forth core
+               system to achieve it. A side effect is that amforth
+               cannot co-exist with classic bootloaders. If a particular
+               boot loader provides an API to enable applications call
+               the flash write operation, amforth can be restructured to
+               use it. Currently only very few and seldom used
+               bootloaders exist that enable this feature.
             </para>
             <para>
                Atmegas can have more than 64 KB Flash. This requires
                more than 16 bit address bit, which is more than the cell
                size. For one type of those bigger atmegas there will be
-               an solution with 16 bit cell size: Atmega128 Controllers. They 
-	       can use the whole address range with an interpretation:
-               The flash addresses are in fact not byte addresses but
-               word addresses. Since amforth does not deal with bytes but 
-	       cells it is possible to use the whole address range
-               with a 16 bit cell. The Atmegas with 128 KBytes Flash
-               operate slightly slower since the address interpretation does need
-               more code to access the flash (both read and write).
+               an solution with 16 bit cell size: Atmega128 Controllers.
+               They can use the whole address range with an
+               interpretation: The flash addresses are in fact not byte
+               addresses but word addresses. Since amforth does not deal
+               with bytes but cells it is possible to use the whole
+               address range with a 16 bit cell. The Atmegas with 128
+               KBytes Flash operate slightly slower since the address
+               interpretation does need more code to access the flash
+               (both read and write).
             </para>
             <para>
-	       The technique described above does not work for the 
+               The technique described above does not work for the
                Atmega256x. These controllers definitly need a bigger
                cell size: 17 bits (or more).
             </para>
@@ -391,8 +408,8 @@
                   byte address!
                </para>
                <para>
-                  The flash write strategy follows Atmel's appnotes.
-                  The first step is turning off all interrupts. Then the
+                  The flash write strategy follows Atmel's appnotes. The
+                  first step is turning off all interrupts. Then the
                   affected flash page is read into the flash page
                   buffer. While doing the copying a check is performed
                   whether a flash erase cycle is needed. The flash erase
@@ -415,61 +432,100 @@
             <title>EEPROM</title>
             <para>
                The build-in EEPROM contains vital dictionary pointer and
-               other persistant data. They need only a few EEPROM
-               cells. The remaining space is available for user
-               programs. The easiest way to use EEPROM is the use of
-               forth VALUEs. There intended design pattern (read often,
-               write seldom) is like that for the tyoical EEPROM usage.
+               other persistant data. They need only a few EEPROM cells.
+               The remaining space is available for user programs. The
+               easiest way to use EEPROM is the use of forth VALUEs.
+               There intended design pattern (read often, write seldom)
+               is like that for the tyoical EEPROM usage.
             </para>
-	    
-	    <para>
-	       Another use for EEPROM cells is to hold execution tokens.
-	       The default system uses this for the turnkey vector. This
-	       is a eeprom variable that reads and executes the XT at
-	       runtime. It is based on the DEFER/IS standard. To define a
-	       deferred word in the EEPROM use the Edefer defintion word.
-	       The standard word IS is used to put a new XT into the vector.
-	    </para>
-	    
-	    <para>
-		Lowlevel space management is done through the the EDP variable.
-		This is not a forth value but a EEPROM based variable. To read the current
-		value an e@ operation must be used, changes are written back with
-		e!. It contains the highest EEPROM address currently allocated.
-		The name is based on the DP variable, which points to the highest
-		dictionary address.
-	    </para>
-	    
+
+            <para>
+               Another use for EEPROM cells is to hold execution tokens.
+               The default system uses this for the turnkey vector. This
+               is a eeprom variable that reads and executes the XT at
+               runtime. It is based on the DEFER/IS standard. To define
+               a deferred word in the EEPROM use the Edefer defintion
+               word. The standard word IS is used to put a new XT into
+               the vector.
+            </para>
+
+            <para>
+               Lowlevel space management is done through the the EDP
+               variable. This is not a forth value but a EEPROM based
+               variable. To read the current value an e@ operation must
+               be used, changes are written back with e!. It contains
+               the highest EEPROM address currently allocated. The name
+               is based on the DP variable, which points to the highest
+               dictionary address.
+            </para>
+
          </sect2>
          <sect2>
             <title>RAM</title>
             <para>
                The RAM address space is divided into three sections: the
-               first 32 addresses are the CPU registers. Then come the
+               first 32 addresses are the CPU registers. Above come the
                IO registers and extended IO registers and finally the
                RAM itself.
             </para>
 
             <para>
-               amforth needs a few (real) RAM locations for it's internal data
-               structures. The biggest part are the buffers for the
-               terminal IO. RAM Memory is managed by the words VARIABLE
-               and ALLOT.
+               amforth needs a few (real) RAM locations for it's
+               internal data structures. The biggest part are the
+               buffers for the terminal IO. RAM Memory is managed by the
+               words VARIABLE and ALLOT.
             </para>
 
             <para>
                With amforth all three sections can be access using there
                RAM address. That makes ist quite easy to work with words
-               like C@.
+               like
+               <code>C@</code>
+               . The word
+               <code>!</code>
+               implements a LSB byte order: The lower part of the cell
+               is stored at the lower address.
             </para>
+            <para>
+               For the RAM exists a word Rdefer which implements a
+               deferred word, placed in RAM. As a special case
+               implements the word Udefer a deferred word in the user
+               area. To put a XT into them the word IS is used. This
+               word is smart enough to distinguish between the varios
+               xdefer definitions.
+            </para>
+            <sect3>
+               <title>User Area</title>
+               <para>
+                  The User Area is a special RAM based storage area. It
+                  contains the USER variables and the User deferred
+                  definitions. The access is based upon the value of the
+                  user pointer UP. It can be changed with the words UP!
+                  and read with UP@. The UP itself is stored in a
+                  register pair.
+               </para>
+               <para>
+                  The size of the user area is defined at compile time
+                  in the device definition section. This may change in
+                  future versions.
+               </para>
+               <para>
+                  The User Area contains both variables (BASE) and the
+                  deferred words for the terminal IO (EMIT, KEY, EMIT?,
+                  KEY?, /KEY). Other pre-defined locations are the
+                  HANDLER variable (needed for the exception handling)
+                  and the addresses of the stack pointers for the
+                  inactive tasks, if multitasking is implemented and
+                  used.
+               </para>
+            </sect3>
          </sect2>
       </sect1>
 
    </chapter>
-   <chapter><title>Todos And Roadmap</title>
-    <para>
-    tbd
-    </para>
+   <chapter id="TODO_ROADMAP">
+      <title>Todos And Roadmap</title>
+      <para>tbd</para>
    </chapter>
-<!--  &REFCARD; -->
+   <!--  &REFCARD; -->
 </book>
