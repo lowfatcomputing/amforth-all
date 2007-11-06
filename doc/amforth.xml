@@ -87,6 +87,7 @@
       </sect1>
    </chapter>
 
+
    <chapter id="Architecture">
       <title>Architecture</title>
       <sect1 id="Architectur_Overview">
@@ -326,11 +327,11 @@
          <sect2>
             <title>Flash</title>
             <para>
-               The flash memory can be divided into 5 different
-               sections. The first section, starting at address 0,
-               contains the interrupt vector table for the low level
-               interrupt handling and a character string with the name
-               of the controller in plain text.
+               The flash memory is divided in 5 sections. The first
+               section, starting at address 0, contains the interrupt
+               vector table for the low level interrupt handling and a
+               character string with the name of the controller in plain
+               text.
             </para>
 
             <para>
@@ -510,7 +511,7 @@
                   future versions.
                </para>
                <para>
-                  The User Area contains both variables (BASE) and the
+                  The User Area contains both variables (BASE) and
                   deferred words for the terminal IO (EMIT, KEY, EMIT?,
                   KEY?, /KEY). Other pre-defined locations are the
                   HANDLER variable (needed for the exception handling)
@@ -523,9 +524,202 @@
       </sect1>
 
    </chapter>
+
+   <chapter id="Forth">
+      <title>Forth Implementation</title>
+      <sect1 id="ANS">
+         <title>ANS Words</title>
+
+         <para>
+            amforth implements most or all words from the CORE and CORE
+            EXT word sets. The words from the word sets LOCALS, BLOCKS,
+            FILE-ACCESS and FLOATING-POINT are dropped completly.
+         </para>
+
+         <sect2 id="ANS_CORE">
+            <title>Core and Core EXT</title>
+            <para>
+               From the CORE word set only the words >NUMBER, C, CHAR+,
+               CHAR, ENVIRONMENT?, EVALUATE, MOVE are missing. From the
+               CORE EXT the words C", COMPILE, , CONVERT, EXPECT, SPAN,
+               PICK, RESTORE-INPUT, ROLL are not implemented.
+            </para>
+            <para>The following words have non-standard behavior</para>
+            <para>
+               words created with : are immediately visible. A earlier
+               definition with the same name will never be accessible.
+               Work around may be done with DEFER/IS.
+            </para>
+            <para>loop counters are checked on signed compares.</para>
+         </sect2>
+         <sect2 id="ANS_BLOCK">
+            <title>Block</title>
+            <para>
+               amforth does not currently support block related words.
+               Implementing them is on the roadmap.
+            </para>
+         </sect2>
+         <sect2 id="ANS_DOUBLENUMBER">
+            <title>Double Number</title>
+            <para>
+               Double numbers are partially supported. They cannot be
+               entered directly.
+            </para>
+         </sect2>
+         <sect2 id="ANS_EXCEPTION">
+            <title>Exception</title>
+            <para>
+               Exceptions are fully supported. The central words THROW
+               and CATCH can be used. The words ABORT and ABORT" use
+               them internally.
+            </para>
+
+            <para>
+               The THROW codes -1, -2 and -13 are used as specified.
+            </para>
+
+            <para>
+               The implementation is based upon a variable HANDLER which
+               holds the current return stack pointer position. This
+               variable is a USER variable.
+            </para>
+         </sect2>
+         <sect2 id="ANS_FACILITY">
+            <title>Facility</title>
+            <para>
+               The basic system uses the KEY? and EMIT? words as
+               deferred words (see ).
+            </para>
+            <para>
+               The word MS is implemented as the word 1MS which busy
+               waits almost exactly 1 millisecond. The calculation is
+               based upon the frequency specified at compiletime.
+            </para>
+
+            <para>
+               The words TIME&amp;DATE, EKEY, EKEY>CHAR are not
+               implemented.
+            </para>
+
+            <para>
+               To control a VT100 terminal the words AT-XY and PAGE are
+               written in forth code. They emit the ANSI control codes
+               according to the VT100 terminal codes.
+            </para>
+         </sect2>
+         <sect2 id="ANS_FILEACCESS">
+            <title>File Access</title>
+            <para>
+               amforth does not have filesystem support. It does not
+               support any words from this word set.
+            </para>
+         </sect2>
+         <sect2 id="ANS_FLOATINGPOINT">
+            <title>Floating Point</title>
+            <para>
+               amforth does not currently support floating point
+               numbers.
+            </para>
+         </sect2>
+         <sect2 id="ANS_LOCALS">
+            <title>Locals</title>
+            <para>amforth does not currently support locals.</para>
+         </sect2>
+         <sect2 id="ANS_MEMORY">
+            <title>Memory Allocation</title>
+            <para>
+               amforth does not support the words from the memory
+               allocation word set.
+            </para>
+         </sect2>
+         <sect2 id="ANS_PROGRAMMING">
+            <title>Programming Tools</title>
+            <para>
+               Variants of the words .S ? and DUMP are implemented or
+               can easily be done. The word SEE won't be supported since
+               amforth highly uses an optimization strategy to strip
+               forth headers whenever possible. The other reason for
+               dropping SEE is that amforth is OpenSource software. If
+               your vendor does not disclose the full source, let me
+               know. He violates the GPL.
+            </para>
+            <para>STATE works as specified</para>
+            <para>
+               The word WORDS does not sort the word list and does not
+               take care of screen sizes.
+            </para>
+
+            <para>
+               The words CODE ;CODE, ASSEMBLER are not supported,
+               amforth does not have an assembler.
+            </para>
+
+            <para>
+               CS-ROLL, CS-PICK and AHEAD are not imlemented. The
+               compiler words operate with the more traditional
+               MARK/RESOLVE word pairs.
+            </para>
+            <para>
+               FORGET is implemented but does not fully reset the
+               dictionary state. The better way is using MARKER.
+            </para>
+
+            <para>EDITOR is not implemented.</para>
+
+            <para>[IF], [ELSE] and [THEN] are not implemented.</para>
+         </sect2>
+         <sect2 id="ANS_SEARCH">
+            <title>Search Order</title>
+            <para>
+               amforth does not support word lists, so no words from the
+               search word set are implemented.
+            </para>
+         </sect2>
+         <sect2 id="ANS_STRING">
+            <title>String</title>
+            <para>SLITERAL, CMOVE> and /STRING are implemented.</para>
+            <para>
+               -TRAILING, BLANK, CMOVE, COMPARE and SEARCH are not
+               implemented.
+            </para>
+         </sect2>
+      </sect1>
+      <sect1 id="AMFORTH">
+         <title>amforth extensions</title>
+         <sect2 id="AMFORTH_MEMORY">
+            <title>Memory</title>
+            <para></para>
+         </sect2>
+         <sect2 id="AMFORTH_IO">
+            <title>Input Output</title>
+            <para></para>
+         </sect2>
+      </sect1>
+   </chapter>
    <chapter id="TODO_ROADMAP">
       <title>Todos And Roadmap</title>
-      <para>tbd</para>
+      <sect1>
+         <title>ANS Words</title>
+         <para>
+            Support for Blocks may be useful. It is not trivial to
+            implement a standard 1KB block buffer on an Atmega with 1KB
+            RAM at all. It can be useful to deploy block sizes smaller
+            than 1KB to match the native block sizes of the attached
+            storage devices: serial EEPROM may have 64 bytes, SD-Cards
+            have 512 bytes.
+         </para>
+      </sect1>
+      <sect1>
+         <title>More Controller Types</title>
+         <para>
+            amforth works on the whole range of Atmegas. The only
+            limiting factor is the flash size: amforth needs at least 7
+            KB for itself and can address at most 128 KB. The ATmega256x
+            may be supported with an change in the cell size from 2 to 3
+            bytes. The other devices are the XMega MCU, that Atmel may
+            publich in the near future.
+         </para>
+        </sect1>
    </chapter>
    <!--  &REFCARD; -->
 </book>
