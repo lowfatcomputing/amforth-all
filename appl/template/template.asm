@@ -21,6 +21,12 @@
 ; initial baud rate of terminal
 .equ baud_rate = 9600
 
+  .equ HLDSIZE  = $10 ; 16 bit cellsize with binary representation
+  .equ TIBSIZE  = $64 ; 80 characters is one line...
+  .equ CELLSIZE = 2   ;
+  .equ USERSIZE = 24  ; size of user area
+
+
 ; the application specific dictionary can
 ;   - not be included, set to 0 (zero)
 ;   - be included in the rww section: set to 1 (one)
