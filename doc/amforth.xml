@@ -688,11 +688,65 @@
          <title>amforth extensions</title>
          <sect2 id="AMFORTH_MEMORY">
             <title>Memory</title>
-            <para></para>
+            <para>
+               Atmega microcontroller have three different types of
+               memory. RAM, EEPROM and Flash. The words @ and ! work on
+               the RAM address space (which include IO Ports and the CPU
+               register), the words e@ and e! operate on the EEPROM and
+               i@ and i! deal with the flash memory. All these words
+               transfer one cell (2 bytes) between the memory and the
+               data stack. The address is always the native address of
+               the target storage: byte-level for EEPROM and RAM,
+               word-level for flash. Therefore the flash addresses
+               64KWords == 128 KBytes address space.
+            </para>
+
+            <para>
+               External RAM shares the normal RAM address space after
+               initialization (which needs to be done within the turnkey
+               action) it is accessible without further action.
+            </para>
+
+            <para>
+               For RAM only exists the special word pair c@/c! which
+               uses the lower byte of the Top-Of-Stack at transfer. The
+               upper byte is either ignored or set to 0 (zero).
+            </para>
+            <para>
+               All other types of external memory need special handling,
+               which may be masked with the block word set.
+            </para>
          </sect2>
          <sect2 id="AMFORTH_IO">
             <title>Input Output</title>
-            <para></para>
+            <para>
+               IO stands for terminal IO. amforth followes the simple
+               terminal paradigm. A serial console is used. All IO is
+               based upon the standard words EMIT/EMIT? and KEY/KEY?. In
+               addition the word /KEY is used to signal the sender to
+               stop. All these words are deferred words in the USER area
+               and can be changed with the IS command.
+            </para>
+            <para>
+               The predefined words use an interrupt driven IO with an
+               buffer for input and output. They do not implement an
+               handshake procedure (XON/XOFF or CTS/RTS). The default
+               terminal device is USART0 (if more than one USART ports
+               are available).
+            </para>
+            <para>
+               The basic words include an call of the PAUSE command to
+               enable the use of multitasking.
+            </para>
+            <para>
+               Other IO is heavily based on the hardware connected to
+               the microcontroller. Code exist to use LCD and TV
+               devices. CAN, USB or I2C may be possible as well. Another
+               use of the redirect feature is the following: consider
+               some input data in external EEPROM (or SD-Cards). To read
+               it, the words KEY and KEY? are redirected to fetch the
+               data from them.
+            </para>
          </sect2>
       </sect1>
    </chapter>
@@ -714,12 +768,14 @@
          <para>
             amforth works on the whole range of Atmegas. The only
             limiting factor is the flash size: amforth needs at least 7
-            KB for itself and can address at most 128 KB. The ATmega256x
-            may be supported with an change in the cell size from 2 to 3
-            bytes. The other devices are the XMega MCU, that Atmel may
-            publich in the near future.
+            KB for itself and can address 128 KB. The ATmega256x may be
+            supported with an change in the cell size from 2 to 3 bytes.
+            The other possible devices are the XMega MCU, that Atmel may
+            publish in the near future. ATiny are not supported since
+            they lack both flash size and some instructions that amforth
+            uses.
          </para>
-        </sect1>
+      </sect1>
    </chapter>
    <!--  &REFCARD; -->
 </book>
