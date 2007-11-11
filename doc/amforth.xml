@@ -87,7 +87,111 @@
       </sect1>
    </chapter>
 
-
+   <chapter id="Sources">
+      <title>Source Organisation</title>
+      <sect1 id="src_overview">
+         <title>Overview</title>
+         <para>
+            amforth needs an assembler to generate the hex files needed
+            for transfer to the controller. That does not mean that
+            every word is actually written in assembly language however.
+            Most of the words are written in forth itself, but are
+            somewhat precompiled into assembly
+            <emphasis>syntax</emphasis>
+            . This solves e.g. the chicken-and-egg problem: how compile
+            the compiler words.
+         </para>
+         <para>
+            amforth consists of a hugh number of relativly small source
+            files. Nearly all words are coded in there own source file.
+            A number of files or organized with include files, called
+            dict*.inc. currently 3 such files exists: dict_minimum,
+            dict_low and dict_compiler.
+         </para>
+         <para>
+            There are two additional files: amforth.asm and macros.inc.
+            The first one is the master file and the only one the
+            application needs to include. The file macros.inc contains
+            some useful assembler macros which makes the source code
+            easier to read.
+         </para>
+      </sect1>
+      <sect1 id="src_core_entry">
+         <title>Core system</title>
+         <para>
+            This file is the core of amforth and includes the dictionary
+            files. Here are the entry code for the microcontroller, and
+            the forth inner interpreter with the interrupt service
+            routine.
+         </para>
+         <sect2 id="src_core_dict">
+            <title>Dictionary files</title>
+            <para>
+               The dictionary files have two aspects: For one they
+               include the word definition files. The other aspect is
+               there location in the resulting flash layout. The file
+               dict_high contains all words for the NRWW flash section.
+               The resulting forth system does not provide anything
+               useful, it can only write into flash.
+            </para>
+            <para>
+               A useful forth system needs at least the file
+               dict_minimum.inc. Here are the serial IO and the forth
+               interpreter words defined.
+            </para>
+            <para>
+               A almost complete forth system with a compiler needs the
+               third include file: dict_compiler.inc.
+            </para>
+            <para>
+               There are a few words left out from the dictionary lists.
+               These words are either not always needed or are some
+               variants of existing words or simply cannot be included
+               to the core system due to size limitations in the NRWW
+               section with smaller atmegas.
+            </para>
+         </sect2>
+         <sect2>
+            <title>Device Settings</title>
+            <para>
+               Every Atmega has it own specific settings. They are based
+               on the official include files provided by Atmel. Here are
+               the most important settings for the serial IO port (which
+               port and which parameters), the interrupt vectors and
+               some macros defined.
+            </para>
+            <para>
+               The last setting is a string with the device name in
+               clear text. This string is used within the word VER.
+            </para>
+         </sect2>
+      </sect1>
+      <sect1>
+         <title>Application Code</title>
+         <para>
+            Every build of amforth does need an application. There are a
+            few standard applications, which can be used either directly
+            (such as the AVR Butterfly) or as a source for inspriration
+            (template application).
+         </para>
+         <para>
+            The structure is basically always the same. First the file
+            macros.asm has to be included. After that some definitions
+            need to done: The size of the Forth buffers, the CPU
+            frequency, initial terminal settings etc. Then the device
+            specific part needs to be included and as the last step the
+            amforth core is included.
+         </para>
+         <para>
+            For a comfortable development cycle the use of a make
+            utility such as make itself is recommended. The assembler
+            needs quite a few settings and the proper order of the
+            include directories. The sample applications use the
+            standard make, others such as ant or maven can be used as
+            well.
+         </para>
+      </sect1>
+   </chapter>
    <chapter id="Architecture">
       <title>Architecture</title>
       <sect1 id="Architectur_Overview">
