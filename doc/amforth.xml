@@ -8,7 +8,7 @@
 <book>
    <bookinfo>
       <title>amforth - Forth for AVR ATmega mico controller</title>
-      <titleabbrev>amforth</titleabbrev>
+      <titleabbrev>amforth 2.4</titleabbrev>
       <author>
          <personname>
             <firstname>Matthias</firstname>
@@ -63,7 +63,8 @@
          <para>
             amforth is a new implementaion. The first code was written
             in the summer of 2006. It is written "from scratch" using
-            the assembly language and forth itself.
+            the assembly language and forth itself. It does not have a
+            direct relation to any other forth system.
          </para>
 
          <para>
@@ -71,7 +72,7 @@
             it's simulator. Soon the switch to real hardware (some
             evalation boards) and a linux based development was made.
             The source code is suitable for both the AVR Studio and the
-            linux avr assembler avra url{avra.sourceforge.net}.
+            linux avr assembler avra.
          </para>
 
       </sect1>
@@ -81,7 +82,7 @@
          <para>
             Amforth uses the self programming features of the ATmegas to
             extend the dictionary. It is ok to use the factory default
-            settings plus changes for the oszillator settings.
+            settings plus (!) changes for the oszillator settings.
             Everything else should be changed with great care.
          </para>
       </sect1>
@@ -96,17 +97,17 @@
             for transfer to the controller. That does not mean that
             every word is actually written in assembly language however.
             Most of the words are written in forth itself, but are
-            somewhat precompiled into assembly
+            precompiled into assembly
             <emphasis>syntax</emphasis>
-            . This solves e.g. the chicken-and-egg problem: how compile
+            . This solves btw the chicken-and-egg problem: how compile
             the compiler words.
          </para>
          <para>
-            amforth consists of a hugh number of relativly small source
+            amforth consists of a great number of relativly small source
             files. Nearly all words are coded in there own source file.
             A number of files or organized with include files, called
             dict*.inc. currently 3 such files exists: dict_minimum,
-            dict_low and dict_compiler.
+            dict_high and dict_compiler.
          </para>
          <para>
             There are two additional files: amforth.asm and macros.inc.
@@ -119,28 +120,30 @@
       <sect1 id="src_core_entry">
          <title>Core system</title>
          <para>
-            This file is the core of amforth and includes the dictionary
-            files. Here are the entry code for the microcontroller, and
-            the forth inner interpreter with the interrupt service
-            routine.
+            Thee file amforth.asm is the core of amforth. Here are the
+            entry code for the microcontroller, and the forth inner
+            interpreter with the interrupt service routine. It includes
+            the dictionary files and therefor the single word source
+            files.
          </para>
          <sect2 id="src_core_dict">
             <title>Dictionary files</title>
             <para>
-               The dictionary files have two aspects: For one they
-               include the word definition files. The other aspect is
-               there location in the resulting flash layout. The file
-               dict_high contains all words for the NRWW flash section.
-               The resulting forth system does not provide anything
-               useful, it can only write into flash.
+               The dictionary files have two tasks: For one they include
+               the word definition files. The other aspect is there
+               location in the resulting flash layout. The file
+               dict_high.inc contains all words for the NRWW flash
+               section, which cannot be used otherwise. It is
+               recommended to maximize the usage of this area, since the
+               word i! cannot write to this address range.
             </para>
             <para>
                A useful forth system needs at least the file
                dict_minimum.inc. Here are the serial IO and the forth
-               interpreter words defined.
+               interpreter words included.
             </para>
             <para>
-               A almost complete forth system with a compiler needs the
+               An almost complete forth system with a compiler needs the
                third include file: dict_compiler.inc.
             </para>
             <para>
@@ -170,9 +173,9 @@
          <title>Application Code</title>
          <para>
             Every build of amforth does need an application. There are a
-            few standard applications, which can be used either directly
-            (such as the AVR Butterfly) or as a source for inspriration
-            (template application).
+            few sample applications, which can be used either directly
+            (such as the AVR Butterfly) or serve as a source for
+            inspriration (template application).
          </para>
          <para>
             The structure is basically always the same. First the file
@@ -206,7 +209,7 @@
 
          <para>
             The compiler is a classic do-and-forget compiler without any
-            kind of optimization.
+            optimization support.
          </para>
 
          <para>
@@ -326,7 +329,7 @@
          <sect2>
             <title>Threading Model</title>
             <para>
-               amforth uses the indirect (classic) threaded variant of
+               amforth uses the classic indirect threaded variant of
                forth.
             </para>
          </sect2>
@@ -339,9 +342,10 @@
                   it's data pointer. The Top-Of-Stack element (TOS) is
                   in a register pair. Compared to a straight forward
                   implementation this approach saves both code space and
-                  gives higher execution speed. Saving more stack
-                  elements does not really give any more profit (much
-                  more code and only little speed enhancements).
+                  gives higher execution speed (approx 10-20 %). Saving
+                  more stack elements does not really give any more
+                  profit (much more code and only little speed
+                  enhancements).
                </para>
                <para>
                   The data stack starts at a configurable distant below
@@ -392,13 +396,14 @@
 
             <para>
                Interrupts from hardware sources (such as the usart) may
-               not work. The reason is that the interrupt source is not
-               cleared within the generic ISR. This leads to an
-               immediate re-interrupt. There is currently no solution
-               but a custom ISR that clears the interrupt source and
-               calls the main ISR. This code has to be run within the
-               interrupt and cannot be (easily) turned into forth code,
-               since the forth inner interpreter is not reentrant.
+               not work as expected. The reason is that the interrupt
+               source is not cleared within the generic ISR. This leads
+               to an immediate re-interrupt. There is currently no
+               solution but a custom ISR that clears the interrupt
+               source and calls the main ISR. This code has to be run
+               within the interrupt and cannot be (easily) turned into
+               forth code, since the forth inner interpreter is not
+               reentrant.
                <!-- maybe run an forth
                   interpreter in background to handle interrupts? -->
             </para>
@@ -407,10 +412,10 @@
             <title>Multitasking</title>
             <para>
                amforth does not really implement multitasking. It only
-               provides the basic framework for it. Within the IO words
-               the word PAUSE is called whenever possible. This word is
-               as a deferred word that is initialized to do nothing
-               (NOOP).
+               provides the basic operation for it. Within the IO words
+               the word <code>PAUSE</code>
+               is called whenever possible. This word is as a deferred
+               word that is initialized to do nothing (NOOP).
             </para>
          </sect2>
 
@@ -635,9 +640,10 @@
          <title>ANS Words</title>
 
          <para>
-            amforth implements most or all words from the CORE and CORE
-            EXT word sets. The words from the word sets LOCALS, BLOCKS,
-            FILE-ACCESS and FLOATING-POINT are dropped completly.
+            amforth implements most or all words from the ANS word sets
+            CORE, CORE EXT, EXCEPTION and DOUBLE NUMBERS. The words from
+            the word sets LOCALS, BLOCKS, FILE-ACCESS and FLOATING-POINT
+            are dropped completly.
          </para>
 
          <sect2 id="ANS_CORE">
@@ -666,20 +672,20 @@
          <sect2 id="ANS_DOUBLENUMBER">
             <title>Double Number</title>
             <para>
-               Double numbers are partially supported. They cannot be
-               entered directly.
+               Double cell numbers do work as aspected. Not all words
+               are implemented and they cannot be entered or dot-ed
+               directly however.
             </para>
          </sect2>
          <sect2 id="ANS_EXCEPTION">
             <title>Exception</title>
             <para>
-               Exceptions are fully supported. The central words THROW
-               and CATCH can be used. The words ABORT and ABORT" use
-               them internally.
+               Exceptions are fully supported. The words ABORT and
+               ABORT" use them internally.
             </para>
 
             <para>
-               The THROW codes -1, -2 and -13 are used as specified.
+               The THROW codes -1, -2 and -13 work as specified.
             </para>
 
             <para>
@@ -692,7 +698,7 @@
             <title>Facility</title>
             <para>
                The basic system uses the KEY? and EMIT? words as
-               deferred words (see ).
+               deferred words.
             </para>
             <para>
                The word MS is implemented as the word 1MS which busy
@@ -754,7 +760,7 @@
             </para>
 
             <para>
-               The words CODE ;CODE, ASSEMBLER are not supported,
+               The words CODE ;CODE and ASSEMBLER are not supported,
                amforth does not have an assembler.
             </para>
 
@@ -768,7 +774,7 @@
                dictionary state. The better way is using MARKER.
             </para>
 
-            <para>EDITOR is not implemented.</para>
+            <para>An EDITOR is not implemented.</para>
 
             <para>[IF], [ELSE] and [THEN] are not implemented.</para>
          </sect2>
@@ -780,7 +786,7 @@
             </para>
          </sect2>
          <sect2 id="ANS_STRING">
-            <title>String</title>
+            <title>Strings</title>
             <para>SLITERAL, CMOVE> and /STRING are implemented.</para>
             <para>
                -TRAILING, BLANK, CMOVE, COMPARE and SEARCH are not
@@ -859,6 +865,21 @@
                some input data in external EEPROM (or SD-Cards). To read
                it, the words KEY and KEY? are redirected to fetch the
                data from them.
+            </para>
+         </sect2>
+         <sect2 id="AMFORTH_STRING">
+            <title>Strings</title>
+            <para>
+               Strings can be stored in two areas: RAM and FLASH. It is
+               not possible to distinguish between the storage areas
+               based on the addresses found on the data stack, it's up
+               to the developer to keep track.
+            </para>
+            <para>
+               Strings are usually stored as counted strings. Strings in
+               flash are compressed: two consecutive bytes are placed
+               into one flash cell. The standard word S" copies the
+               string from the RAM into flash using the word S,.
             </para>
          </sect2>
       </sect1>
