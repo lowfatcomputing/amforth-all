@@ -10,15 +10,19 @@ AMFORTH=../../trunk
 
 # the MCU should be identical to the device
 # setting in template.asm
-MCU=atmega168
+MCU=atmega16
+
+# internal rc oszi and 8 MHz
+LFUSE=0xe4 
+HFUSE=0x99
 
 # some programs
 AVRDUDE=avrdude
-AVRA=/opt/cdk4avr/bin/avra
+AVRA=avra
 INCLUDE=-I ~/lib/avra -I $(AMFORTH)
 
 # some settings
-USB=-c avr911  -P /dev/ttyUSB1
+USB=-c avr911  -P /dev/ttyUSB3
 PP=-c stk200  -P /dev/parport0
 JTAG=-c jtag2 -P /dev/ttyUSB2
 
@@ -34,3 +38,5 @@ template.back:
 clean:
 	rm -f template.hex template.eep.hex template.lst template.map template.cof template.obj
 
+write-fuse:
+	$(AVRDUDE) $(USB) -p $(MCU) -U hfuse:w:$(HFUSE):m -U lfuse:w:$(LFUSE):m
