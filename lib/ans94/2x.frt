@@ -49,3 +49,6 @@
 \ 2! ( n1 n2 addr -- )
 : 2!
   swap over ! cell+ ! ;
+
+\ m+ ( d1 n -- d2 )
+: m+ s>d d+ ;
