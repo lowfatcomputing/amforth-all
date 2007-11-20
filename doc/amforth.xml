@@ -36,9 +36,11 @@
 
          <para>
             amforth implements a large subset of the Forth standard
-            ANS94. Most of the CORE words and a varying number of words
-	    from the additional word sets are implemented. The word 
-	    set used in an actual implementation can easily be changed.
+            ANS94. Most of the CORE and CORE EXT words and a varying number
+	    of words from the other word sets are implemented. It is
+	    very easy to extend or shrink the actual word list for a
+	    specific application by just editing the dictionary include
+	    files.
          </para>
 
          <para>
@@ -58,21 +60,34 @@
 
          <para>The name amforth has no special meaning.</para>
       </sect1>
-      
+
+      <sect1 id="UserInterface">
+         <title>Appearance</title>
+         <para>amforth has a minimalistic user interface. Connect your system
+         to a serial terminal (or a PC) and you get the forth prompt <prompt>></prompt>.
+            <screen>
+               amforth 2.5 ATmega32
+               <prompt>></prompt>
+               <command>words</command>
+               cell+ cells abort abort" [char] ...
+               <prompt>></prompt>
+            </screen>
+         </para>
+      </sect1>
       <sect1 id="History">
          <title>History</title>
          <para>
             amforth is a new implementaion. The first code was written
             in the summer of 2006. It is written "from scratch" using
-            the atmega assembly language and forth itself. It does not 
-	    have a direct relation to any other forth system.
+            the assembly language and forth itself. It does not have a
+            direct relation to any other forth system.
          </para>
 
          <para>
             The first lines of code were written with the AVR Studio and
-            it's simulator. Soon the switch to real hardware (an
-            cheap evalation board) and to a linux based development was made.
-            The source code can be processed with the AVR Studio and the
+            it's simulator. Soon the switch to real hardware (some
+            evalation boards) and a linux based development was made.
+            The source code can be processed with both the AVR Studio and the
             linux avr assembler avra.
          </para>
 
@@ -84,8 +99,8 @@
             Amforth uses the self programming features of the ATmegas to
             extend the dictionary. It is ok to use the factory default
             settings plus (!) changes for the oszillator settings. It is
-	    recommended to choose a higher speed than the default 1MHz to
-	    achieve a stable serial communication. 
+	    recommended to use a higher CPU freqency to meet the timing
+	    requirements of the serial terminal.
          </para>
       </sect1>
    </chapter>
@@ -95,61 +110,61 @@
       <sect1 id="src_overview">
          <title>Overview</title>
          <para>
-            amforth needs an assembler to generate the hex files 
-            for flash and EEPROM. That does not mean that
-            every word is actually written in assembly language.
+            amforth needs an assembler to generate the hex files for
+	    Flash and EEPROM. That does not mean that
+            every word is actually written in assembly language however.
             Most of the words are written in forth itself, but are
-            precompiled into assembly <emphasis>syntax</emphasis>.
-            This solves some chicken-and-egg problems too: compile
+            precompiled into assembly  <emphasis>syntax</emphasis>.
+            This solves btw the chicken-and-egg problem too: how compile
             the compiler words.
          </para>
          <para>
             amforth consists of a great number of relativly small source
-            files. Nearly all words are in there own source files.
-            A number of files are organized with include files, named
-            like <filename>dict*.inc</filename>. Currently 3 such files 
-	    exists: <filename>dict_minimum</filename>, 
-	    <filename>dict_high</filename> and 
-	    <filename>dict_compiler</filename>.
+            files. Nearly all words are coded in there own source file.
+            A number of files or organized with include files, called
+            <filename>dict*.inc</filename>. Currently 3 such files exists:
+            <filename>dict_minimum</filename>,
+            <filename>dict_high.inc</filename> and
+            <filename>dict_compiler.inc</filename>.
          </para>
          <para>
             There are two additional files: <filename>amforth.asm</filename> 
-	    and <filename>macros.inc</filename>.
+	    and <filename>macros.asm</filename>.
             The first one is the master file and the only one the
-            application needs to include. The file <filename>macros.inc</filename> 
-	    contains some useful assembler macros which makes the source code
+            application needs to include. The file <filename>macros.asm</filename> contains
+            some useful assembler macros which makes the source code
             easier to read.
          </para>
       </sect1>
       <sect1 id="src_core_entry">
          <title>Core system</title>
          <para>
-            Thee file <filename>amforth.asm</filename> is the core of amforth. Here are the
-            entry code for the microcontroller, and the forth inner
-            interpreter with the interrupt service routine. It includes
-            the dictionary files and therefor the single word source
-            files.
+            Thee file <filename>amforth.asm</filename>
+            is the core of amforth. Here is the startup code for the
+            microcontroller, and the forth inner interpreter with the
+            interrupt service routine. It includes the dictionary files.
          </para>
          <sect2 id="src_core_dict">
             <title>Dictionary files</title>
             <para>
                The dictionary files have two tasks: For one they include
-               the word definition files. The other is the
-               placement in the resulting flash layout. The file
-               <filename>dict_high.inc</filename> contains all words for the NRWW flash
+               the word definition files. The other aspect is there
+               location in the resulting flash layout. The file
+               dict_high.inc contains all words for the NRWW flash
                section, which cannot be used otherwise. It is
                recommended to maximize the usage of this area, since the
-               word <code>i!</code> cannot write to this address range.
+               word
+               <command>i!</command>
+               cannot write to this address range.
             </para>
             <para>
                A useful forth system needs at least the file
-               <filename>dict_minimum.inc</filename>. Here are the serial IO and the forth
+               dict_minimum.inc. Here are the serial IO and the forth
                interpreter words included.
             </para>
             <para>
                An almost complete forth system with a compiler needs the
-               third include file: <filename>dict_compiler.inc</filename>.
-	       It includes the typical compiler words.
+               third include file: dict_compiler.inc.
             </para>
             <para>
                There are a few words left out from the dictionary lists.
@@ -163,14 +178,14 @@
             <title>Device Settings</title>
             <para>
                Every Atmega has it own specific settings. They are based
-               on the official include files provided by Atmel. 
-               The most important settings are the serial IO port (which
+               on the official include files provided by Atmel. Here are
+               the most important settings for the serial IO port (which
                port and which parameters), the interrupt vectors and
-               some macros.
+               some macros defined.
             </para>
             <para>
-               The last entry is a string with the device name in
-               clear text. This string is used within the word <code>VER</code>.
+               The last setting is a string with the device name in
+               clear text. This string is used within the word VER.
             </para>
          </sect2>
       </sect1>
@@ -184,15 +199,15 @@
          </para>
          <para>
             The structure is basically always the same. First the file
-            <filename>macros.asm</filename> has to be included. After that some definitions
-            need to set: The size of the Forth buffers, the CPU
+            macros.asm has to be included. After that some definitions
+            need to done: The size of the Forth buffers, the CPU
             frequency, initial terminal settings etc. Then the device
             specific part needs to be included and as the last step the
             amforth core is included.
          </para>
          <para>
-            For a comfortable development cycle the use of a build
-	    utility such as make is recommended. The assembler
+            For a comfortable development cycle the use of a make
+            utility such as make itself is recommended. The assembler
             needs quite a few settings and the proper order of the
             include directories. The sample applications use the
             standard make, others such as ant or maven can be used as
@@ -218,11 +233,11 @@
          </para>
 
          <para>
-            amforth uses most of the CPU registers to hold vital data: 
-	    The data stack pointer, the instruction pointer,
+            amforth uses most of the CPU registers to hold vital data
+            structures: The data stack pointer, the instruction pointer,
             the user pointer, and the Top-Of-Stack cell. The hardware
-            stack is used as the return stack. Most of the registers are 
-	    used for temporary data in primitives.
+            stack is used as the return stack. Some registers are used
+            for temporary data in primitives.
          </para>
       </sect1>
 
@@ -253,14 +268,14 @@
                         <entry>SPH:SPL</entry>
                      </row>
                      <row>
-                        <entry>Data Stack Pointer SP</entry>
+                        <entry>Data Stack Pointer DP</entry>
                         <entry>YH:YL</entry>
                      </row>
                   </tbody>
                </tgroup>
             </table>
-            In addition the register pair ZH:ZL is used as temporary
-            storage and as an operand in many operations.
+            In addition the register pair ZH:ZL is used as a temporary
+            storage.
          </para>
 
          <sect2>
@@ -287,26 +302,27 @@
                <para>
                   The very first step in NEXT is to check whether an
                   interrupt needs to handled. It is done by looking at
-                  the  <code>T</code>
+                  the
+                  <command>T</command>
                   flag in the machine status register. If it is set, the
                   code jumps to the interrupt handling part. If the flag
-                  is cleared the normal NEXT routine is executed.
+                  is cleared the normal NEXT routine runs.
                </para>
             </sect3>
             <sect3>
                <title>NEST</title>
                <para>
                   NEST (or DO_COLON) pushes the current IP to the return
-                  stack and loads the flash cell pointed to by the Word Pointer
-                  into the IP. Then it continues with NEXT.
+                  stack and loads the next flash cell pointed to by the 
+		  Word Pointer into the IP. Then it continues with NEXT.
                </para>
             </sect3>
             <sect3>
                <title>UNNEST</title>
                <para>
                   The code for UNNEST is the word
-                  <code>EXIT</code>
-                  in the dictionary. It pops the IP from the
+                  <command>EXIT</command>
+                  in the dictionary. It simply pops the IP from the
                   return stack and jumps to NEXT.
                </para>
             </sect3>
@@ -315,7 +331,8 @@
                <para>
                   This code is the runtime that is used by the code
                   compiled by the forth word
-                  <code>DOES</code>. It it closly tight to the action performed by the
+                  <command>DOES</command>
+                  . It it closly tight to the action performed by the
                   code compiled by DOES. That code pushed the current
                   address in the data field to the returnstack and jumps
                   to DO_DOES. DO_DOES gets that address back, saves the
@@ -381,7 +398,7 @@
                for all interrupts. It takes the number of the interrupt
                from it's vector address and stores this in a RAM cell.
                Then the low level ISR sets the
-               <code>T</code>
+               <command>T</command>
                flag in the status register of the controller. The inner
                interpreter checks every time it is entered this flag and
                if it is set it switches to interrupt handling at forth
@@ -415,7 +432,7 @@
             <para>
                amforth does not really implement multitasking. It only
                provides the basic operation for it. Within the IO words
-               the word <code>PAUSE</code>
+               the word <command>PAUSE</command>
                is called whenever possible. This word is as a deferred
                word that is initialized to do nothing (NOOP).
             </para>
@@ -592,9 +609,9 @@
                With amforth all three sections can be access using there
                RAM address. That makes ist quite easy to work with words
                like
-               <code>C@</code>
+               <command>C@</command>
                . The word
-               <code>!</code>
+               <command>!</command>
                implements a LSB byte order: The lower part of the cell
                is stored at the lower address.
             </para>
@@ -755,30 +772,57 @@
                your vendor does not disclose the full source, let me
                know. He violates the GPL.
             </para>
-            <para>STATE works as specified</para>
             <para>
-               The word WORDS does not sort the word list and does not
-               take care of screen sizes.
+               <command>STATE</command>
+               works as specified
+            </para>
+            <para>
+               The word
+               <command>WORDS</command>
+               does not sort the word list and does not take care of
+               screen sizes.
             </para>
 
             <para>
-               The words CODE ;CODE and ASSEMBLER are not supported,
-               amforth does not have an assembler.
+               The words
+               <command>CODE</command>
+               <command>;CODE</command>
+               and
+               <command>ASSEMBLER</command>
+               are not supported, amforth does not have an assembler.
             </para>
 
             <para>
-               CS-ROLL, CS-PICK and AHEAD are not imlemented. The
-               compiler words operate with the more traditional
-               MARK/RESOLVE word pairs.
+               <command>CS-ROLL</command>
+               ,
+               <command>CS-PICK</command>
+               and
+               <command>AHEAD</command>
+               are not imlemented. The compiler words operate with the
+               more traditional
+               <command>MARK</command>
+               /
+               <command>RESOLVE</command>
+               word pairs.
             </para>
             <para>
-               FORGET is implemented but does not fully reset the
-               dictionary state. The better way is using MARKER.
+               <command>FORGET</command>
+               is implemented but does not fully reset the dictionary
+               state. The better way is using
+               <command>MARKER</command>
+               .
             </para>
 
             <para>An EDITOR is not implemented.</para>
 
-            <para>[IF], [ELSE] and [THEN] are not implemented.</para>
+            <para>
+               <command>[IF]</command>
+               ,
+               <command>[ELSE]</command>
+               and
+               <command>[THEN]</command>
+               are not implemented.
+            </para>
          </sect2>
          <sect2 id="ANS_SEARCH">
             <title>Search Order</title>
@@ -789,10 +833,25 @@
          </sect2>
          <sect2 id="ANS_STRING">
             <title>Strings</title>
-            <para>SLITERAL, CMOVE> and /STRING are implemented.</para>
             <para>
-               -TRAILING, BLANK, CMOVE, COMPARE and SEARCH are not
-               implemented.
+               <command>SLITERAL</command>
+               ,
+               <command>CMOVE></command>
+               and
+               <command>/STRING</command>
+               are implemented.
+            </para>
+            <para>
+               <command>-TRAILING</command>
+               ,
+               <command>BLANK</command>
+               ,
+               <command>CMOVE</command>
+               ,
+               <command>COMPARE</command>
+               and
+               <command>SEARCH</command>
+               are not implemented.
             </para>
          </sect2>
       </sect1>
@@ -811,27 +870,41 @@
             <title>Memory</title>
             <para>
                Atmega microcontroller have three different types of
-               memory. RAM, EEPROM and Flash. The words @ and ! work on
-               the RAM address space (which include IO Ports and the CPU
-               register), the words e@ and e! operate on the EEPROM and
-               i@ and i! deal with the flash memory. All these words
-               transfer one cell (2 bytes) between the memory and the
-               data stack. The address is always the native address of
-               the target storage: byte-level for EEPROM and RAM,
-               word-level for flash. Therefore the flash addresses
-               64KWords == 128 KBytes address space.
+               memory. RAM, EEPROM and Flash. The words
+               <command>@</command>
+               and
+               <command>!</command>
+               work on the RAM address space (which include IO Ports and
+               the CPU register), the words
+               <command>e@</command>
+               and
+               <command>e!</command>
+               operate on the EEPROM and
+               <command>i@</command>
+               and
+               <command>i!</command>
+               deal with the flash memory. All these words transfer one
+               cell (2 bytes) between the memory and the data stack. The
+               address is always the native address of the target
+               storage: byte-level for EEPROM and RAM, word-level for
+               flash. Therefore the flash addresses 64KWords == 128
+               KBytes address space.
             </para>
 
             <para>
                External RAM shares the normal RAM address space after
                initialization (which needs to be done within the turnkey
-               action) it is accessible without further action.
+               action). It is accessible without further action.
             </para>
 
             <para>
-               For RAM only exists the special word pair c@/c! which
-               uses the lower byte of the Top-Of-Stack at transfer. The
-               upper byte is either ignored or set to 0 (zero).
+               For RAM only exists the special word pair
+               <command>c@</command>
+               /
+               <command>c!</command>
+               which uses the lower byte of the Top-Of-Stack at
+               transfer. The upper byte is either ignored or set to 0
+               (zero).
             </para>
             <para>
                All other types of external memory need special handling,
@@ -841,12 +914,22 @@
          <sect2 id="AMFORTH_IO">
             <title>Input Output</title>
             <para>
-               IO stands for terminal IO. amforth followes the simple
-               terminal paradigm. A serial console is used. All IO is
-               based upon the standard words EMIT/EMIT? and KEY/KEY?. In
-               addition the word /KEY is used to signal the sender to
-               stop. All these words are deferred words in the USER area
-               and can be changed with the IS command.
+               amforth uses simple terminal io. A serial console is
+               used. All IO is based upon the standard words
+               <command>EMIT</command>
+               /
+               <command>EMIT?</command>
+               and
+               <command>KEY</command>
+               /
+               <command>KEY?</command>
+               . In addition the word
+               <command>/KEY</command>
+               is used to signal the sender to stop. All these words are
+               deferred words in the USER area and can be changed with
+               the
+               <command>IS</command>
+               command.
             </para>
             <para>
                The predefined words use an interrupt driven IO with an
@@ -856,17 +939,21 @@
                are available).
             </para>
             <para>
-               The basic words include an call of the PAUSE command to
-               enable the use of multitasking.
+               The basic words include an call of the
+               <command>PAUSE</command>
+               command to enable the use of multitasking.
             </para>
             <para>
-               Other IO is heavily based on the hardware connected to
-               the microcontroller. Code exist to use LCD and TV
-               devices. CAN, USB or I2C may be possible as well. Another
-               use of the redirect feature is the following: consider
-               some input data in external EEPROM (or SD-Cards). To read
-               it, the words KEY and KEY? are redirected to fetch the
-               data from them.
+               Other IO depend on the hardware connected to the
+               microcontroller. Code exist to use LCD and TV devices.
+               CAN, USB or I2C are possible as well. Another use of the
+               redirect feature is the following: consider some input
+               data in external EEPROM (or SD-Cards). To read it, the
+               words
+               <command>KEY</command>
+               and
+               <command>KEY?</command>
+               are redirected to fetch the data from them.
             </para>
          </sect2>
          <sect2 id="AMFORTH_STRING">
@@ -880,8 +967,11 @@
             <para>
                Strings are usually stored as counted strings. Strings in
                flash are compressed: two consecutive bytes are placed
-               into one flash cell. The standard word S" copies the
-               string from the RAM into flash using the word S,.
+               into one flash cell. The standard word
+               <command>S"</command>
+               copies the string from the RAM into flash using the word
+               <command>S,</command>
+               .
             </para>
          </sect2>
       </sect1>
@@ -895,7 +985,7 @@
             implement a standard 1KB block buffer on an Atmega with 1KB
             RAM at all. It can be useful to deploy block sizes smaller
             than 1KB to match the native block sizes of the attached
-            storage devices: serial EEPROM may have 64 bytes, SD-Cards
+            storage devices: serial EEPROM have e.g. 64 bytes, SD-Cards
             have 512 bytes.
          </para>
       </sect1>
@@ -904,7 +994,7 @@
          <para>
             amforth works on the whole range of Atmegas. The only
             limiting factor is the flash size: amforth needs at least 7
-            KB for itself and can address at most 128 KB. The ATmega256x may be
+            KB for itself and can address 128 KB. The ATmega256x may be
             supported with an change in the cell size from 2 to 3 bytes.
             The other possible devices are the XMega MCU, that Atmel may
             publish in the near future. ATiny are not supported since
