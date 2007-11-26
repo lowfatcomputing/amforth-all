@@ -36,11 +36,11 @@
 
          <para>
             amforth implements a large subset of the Forth standard
-            ANS94. Most of the CORE and CORE EXT words and a varying number
-	    of words from the other word sets are implemented. It is
-	    very easy to extend or shrink the actual word list for a
-	    specific application by just editing the dictionary include
-	    files.
+            ANS94. Most of the CORE and CORE EXT words and a varying
+            number of words from the other word sets are implemented. It
+            is very easy to extend or shrink the actual word list for a
+            specific application by just editing the dictionary include
+            files.
          </para>
 
          <para>
@@ -63,8 +63,12 @@
 
       <sect1 id="UserInterface">
          <title>Appearance</title>
-         <para>amforth has a minimalistic user interface. Connect your system
-         to a serial terminal (or a PC) and you get the forth prompt <prompt>></prompt>.
+         <para>
+            amforth has a minimalistic user interface. Connect your
+            system to a serial terminal (or a PC) and you get the forth
+            prompt
+            <prompt>></prompt>
+            .
             <screen>
                amforth 2.5 ATmega32
                <prompt>></prompt>
@@ -87,8 +91,8 @@
             The first lines of code were written with the AVR Studio and
             it's simulator. Soon the switch to real hardware (some
             evalation boards) and a linux based development was made.
-            The source code can be processed with both the AVR Studio and the
-            linux avr assembler avra.
+            The source code can be processed with both the AVR Studio
+            and the linux avr assembler avra.
          </para>
 
       </sect1>
@@ -99,8 +103,8 @@
             Amforth uses the self programming features of the ATmegas to
             extend the dictionary. It is ok to use the factory default
             settings plus (!) changes for the oszillator settings. It is
-	    recommended to use a higher CPU freqency to meet the timing
-	    requirements of the serial terminal.
+            recommended to use a higher CPU freqency to meet the timing
+            requirements of the serial terminal.
          </para>
       </sect1>
    </chapter>
@@ -111,35 +115,44 @@
          <title>Overview</title>
          <para>
             amforth needs an assembler to generate the hex files for
-	    Flash and EEPROM. That does not mean that
-            every word is actually written in assembly language however.
-            Most of the words are written in forth itself, but are
-            precompiled into assembly  <emphasis>syntax</emphasis>.
-            This solves btw the chicken-and-egg problem too: how compile
-            the compiler words.
+            Flash and EEPROM. That does not mean that every word is
+            actually written in assembly language however. Most of the
+            words are written in forth itself, but are precompiled into
+            assembly
+            <emphasis>syntax</emphasis>
+            . This solves btw the chicken-and-egg problem too: how
+            compile the compiler words.
          </para>
          <para>
             amforth consists of a great number of relativly small source
             files. Nearly all words are coded in there own source file.
             A number of files or organized with include files, called
-            <filename>dict*.inc</filename>. Currently 3 such files exists:
-            <filename>dict_minimum</filename>,
-            <filename>dict_high.inc</filename> and
-            <filename>dict_compiler.inc</filename>.
+            <filename>dict*.inc</filename>
+            . Currently 3 such files exists:
+            <filename>dict_minimum</filename>
+            ,
+            <filename>dict_high.inc</filename>
+            and
+            <filename>dict_compiler.inc</filename>
+            .
          </para>
          <para>
-            There are two additional files: <filename>amforth.asm</filename> 
-	    and <filename>macros.asm</filename>.
-            The first one is the master file and the only one the
-            application needs to include. The file <filename>macros.asm</filename> contains
-            some useful assembler macros which makes the source code
-            easier to read.
+            There are two additional files:
+            <filename>amforth.asm</filename>
+            and
+            <filename>macros.asm</filename>
+            . The first one is the master file and the only one the
+            application needs to include. The file
+            <filename>macros.asm</filename>
+            contains some useful assembler macros which makes the source
+            code easier to read.
          </para>
       </sect1>
       <sect1 id="src_core_entry">
          <title>Core system</title>
          <para>
-            Thee file <filename>amforth.asm</filename>
+            Thee file
+            <filename>amforth.asm</filename>
             is the core of amforth. Here is the startup code for the
             microcontroller, and the forth inner interpreter with the
             interrupt service routine. It includes the dictionary files.
@@ -228,8 +241,8 @@
          </para>
 
          <para>
-            The compiler is a classic compiler without any
-            optimization support.
+            The compiler is a classic compiler without any optimization
+            support.
          </para>
 
          <para>
@@ -313,8 +326,8 @@
                <title>NEST</title>
                <para>
                   NEST (or DO_COLON) pushes the current IP to the return
-                  stack and loads the next flash cell pointed to by the 
-		  Word Pointer into the IP. Then it continues with NEXT.
+                  stack and loads the next flash cell pointed to by the
+                  Word Pointer into the IP. Then it continues with NEXT.
                </para>
             </sect3>
             <sect3>
@@ -362,9 +375,8 @@
                   in a register pair. Compared to a straight forward
                   implementation this approach saves both code space and
                   gives higher execution speed (approx 10-20 %). Saving
-                  more stack elements does not really give more
-                  profit (much more code and only little speed
-                  enhancements).
+                  more stack elements does not really give more profit
+                  (much more code and only little speed enhancements).
                </para>
                <para>
                   The data stack starts at a configurable distant below
@@ -432,7 +444,8 @@
             <para>
                amforth does not really implement multitasking. It only
                provides the basic operation for it. Within the IO words
-               the word <command>PAUSE</command>
+               the word
+               <command>PAUSE</command>
                is called whenever possible. This word is as a deferred
                word that is initialized to do nothing (NOOP).
             </para>
@@ -976,6 +989,89 @@
          </sect2>
       </sect1>
    </chapter>
+
+   <chapter id="Tools">
+      <title>Tools</title>
+      <sect1 id="Tools_host">
+         <title>Host</title>
+         <para>
+            There a few number of tools on the hostside (PC) that are
+            specifically written to support amforth. They are written in
+            script languages like perl and python and should work on all
+            major operating systems.
+         </para>
+         <sect2>
+            <title>Documentation</title>
+            <para>
+               The tool
+               <command>makerefcard</command>
+               reads the assembly files from the
+               <filename>words</filename>
+               subdirectory and creates a reference card. The resulting
+               LaTeX file needs to be processed with latex to generate a
+               nice looking overview of all words available in the
+               amforth core system.
+            </para>
+
+            <para>
+               The command
+               <command>make-htmlwords</command>
+               creates the linked overview of all words on the amforth
+               homepage.
+            </para>
+         </sect2>
+         <sect2 id="uplaoder">
+            <title>Uploader</title>
+            <para>
+               To transfer forth code to the microcontroller some
+               precautions need to taken. During flash write operation
+               all interrupts are turned off. This may lead to lost
+               characters on the serial line. One solution is to send
+               very slowly and hope that the receiver gets all
+               characters. The programm
+               <command>ascii-xfer</command>
+               can do the job:
+               <cmdsynopsis>
+                  <command>ascii-xfr</command>
+                  <arg choice="plain">-s</arg>
+                  <arg choice="plain">-c $delay_char</arg>
+                  <arg choice="plain">-l $delay_line</arg>
+                  <arg choice="plain">$file</arg>
+                  <arg choice="plain">> $tty</arg>
+               </cmdsynopsis>
+               This works but the upload of longer files need a very
+               long time.
+            </para>
+            <para>
+               Another solution is
+               <command>amforth-upload.py</command>
+               . It was initially created by user
+               <ulink url="http://pix.test.at/">
+                  <citetitle>pix</citetitle>
+               </ulink>
+               . His algorithm checks for every character sent to
+               controller its echo. At lineends the uploader waits for
+               the ok prompt to continue with the next line.
+            </para>
+            <para>
+               This algorithm work very fast without the risk of lost
+               characters. An extension of this script provides limited
+               library support. In the source files a command
+               <cmdsynopsis>
+                  <command>#include</command>
+                  <arg choice="plain">filename</arg>
+               </cmdsynopsis>
+               is used to upload the content of
+               <filename>filename</filename>
+               instead of the two words. The sources will only work with
+               this uploader utility, others will trigger the
+               "word-not-found" exception on the controller unless they
+               recognise the #include syntax (similiar to the c
+               preprocessor).
+            </para>
+         </sect2>
+      </sect1>
+   </chapter>
    <chapter id="TODO_ROADMAP">
       <title>Todos And Roadmap</title>
       <sect1>
@@ -993,13 +1089,13 @@
          <title>More Controller Types</title>
          <para>
             amforth works on the whole range of Atmegas. The only
-            limiting factor is the flash size: amforth needs at least 7
-            KB for itself and can address 128 KB. The ATmega256x may be
-            supported with an change in the cell size from 2 to 3 bytes.
+            limiting factor is the flash size: amforth needs 7 KB for
+            itself and can address 128 KB. The ATmega256x may be
+            supported with a change in the cell size from 2 to 3 bytes.
             The other possible devices are the XMega MCU, that Atmel may
-            publish in the near future. ATiny are not supported since
-            they lack both flash size and some instructions that amforth
-            uses.
+            publish in the near future. ATtiny devices are not supported
+            since they lack both flash size and a few instructions that
+            amforth uses.
          </para>
       </sect1>
    </chapter>
