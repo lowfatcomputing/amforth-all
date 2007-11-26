@@ -18,7 +18,13 @@
 #   mailto:pix@test.at
 #   http://pix.test.at/
 
-
+# change 26.11.2007
+# mt: state machine extended to handle ok prompt later on the line
+# mt: defined include syntax for files:
+#         #include filename 
+#     e.g. #include lib/ans94/marker.frt
+#     currently all filenames start in the current work directory.
+#
 import sys
 import getopt
 import os
@@ -42,6 +48,16 @@ def write_line_flow(string,dest):
 
 	if debug:
 		print >>sys.stderr, "line after comment stripping: "+string
+
+	if re.match("#include ", string):
+		filename=re.match("#include (\S+)",string).group(1)
+		nested_file = file(filename,"r")
+		if verbose:
+			print >>sys.stderr, "\nincluding file: '"+filename+"'"
+		write_file_flow(nested_file, dest)
+		nested_file.close()
+		return
+
 
 	if verbose: 
 		print >>sys.stderr, "sending line: "+string
@@ -73,10 +89,12 @@ def write_line_flow(string,dest):
 		#dest.write("")
 		i = dest.read(1)
 		#print "<"+i+"]",
-		#print >>sys.stderr, "["+i+"]"
+		#print >>sys.stderr, "i=["+i+"] state="+str(state)
 		sys.stdout.write(i)
 		sys.stdout.flush()
-		if state == start:
+		if i==" ":
+			state = space
+		elif state == start:
 			if i == "\r":
 				state = nl
 			elif i == " ":
