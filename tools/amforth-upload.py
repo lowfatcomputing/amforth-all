@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 # amforth-upload.py
 #
 #   uploads text files containing forth commands to a microcontroller running amforth (v1.3)
@@ -23,12 +22,46 @@
 # mt: defined include syntax for files:
 #         #include filename 
 #     e.g. #include lib/ans94/marker.frt
-#     currently all filenames start in the current work directory.
+# mt: an envar AMFORTH_LIB is checked as the list of directories 
+#     to searched. This list is appended to "." (current work directory)
 #
 import sys
 import getopt
 import os
 import re
+
+def merge(seq):
+    merged = []
+    for s in seq:
+        for x in s:
+            merged.append(x)
+    return merged
+
+
+def search_and_open_file(filename):
+    directorylist=["."]
+    if os.environ.has_key("AMFORTH_LIB"):
+	directorylist = merge([directorylist, os.environ["AMFORTH_LIB"].split(":")])
+	if debug:
+	    print >>sys.stderr, "Directorylist  "+str(directorylist)
+	
+    for directory in directorylist:
+	if debug:
+	    print >>sys.stderr, "Trying in  "+directory
+	try:
+	    filehandle = file(filename,"r")
+	    if debug:
+		print >>sys.stderr, "Found! in "+directory	    
+	    if verbose:
+        	print >>sys.stderr, "\nincluding file: '"+filename+"'"
+	    return filehandle
+	except IOError:
+	    if debug:
+		print >>sys.stderr, "Sorry not found"
+	# oops, no file found?
+    print >>sys.stderr, "Could not find a module named "+filename
+    print >>sys.stderr, "Sorry, giving up. You should check the controller!"
+    sys.exit(2)
 
 def write_line_flow(string,dest):
 	# strip comments
@@ -51,9 +84,7 @@ def write_line_flow(string,dest):
 
 	if re.match("#include ", string):
 		filename=re.match("#include (\S+)",string).group(1)
-		nested_file = file(filename,"r")
-		if verbose:
-			print >>sys.stderr, "\nincluding file: '"+filename+"'"
+		nested_file = search_and_open_file(filename)
 		write_file_flow(nested_file, dest)
 		nested_file.close()
 		return
@@ -160,10 +191,11 @@ def main(argv):
 	for opt, arg in opts:
 		if opt == "-h":
 			print >>sys.stderr, "usage: amforth-upload [-h] [-v] [-f] [-t tty] [file1] [file2] [...]"
-			print >>sys.stderr, "\n   default tty is "+tty_dev_name
-			print >>sys.stderr, "\n   if no files are specified, input is read from the the terminal"
-			print >>sys.stderr, "\n   -f will run without checking for other processes accessing the tty"
-			print >>sys.stderr, "\n   -v will print extra information during execution"
+			print >>sys.stderr, "   default tty is "+tty_dev_name
+			print >>sys.stderr, "   if no files are specified, input is read from the the terminal"
+			print >>sys.stderr, "   -f will run without checking for other processes accessing the tty"
+			print >>sys.stderr, "   -v will print extra information during execution"
+			print >>sys.stderr, "   -t selects the serial device. Default is " + tty_dev_name
 			sys.exit(1)
 		elif opt == "-t":
 			tty_dev_name = arg
@@ -179,11 +211,10 @@ def main(argv):
 			if not os.system("fuser -u "+tty_dev_name):
 				print >>sys.stderr, "the above process is accessing "+tty_dev_name+"."
 				print >>sys.stderr, "please stop the process and try again."
+				print >>sys.stderr, "run with the -f option to force execution anyway"	
 				sys.exit(1)
 		else:
 			print >>sys.stderr, "couldn't find fuser. so i can't check if "+tty_dev_name+" is in use."
-			print >>sys.stderr, "run with the -f option to force execution anyway"	
-
 
 	tty_dev = file(tty_dev_name,"r+",0)
 
@@ -193,13 +224,9 @@ def main(argv):
 		write_file_flow(sys.stdin,tty_dev)
 	else:
 		for filename in args:
-			in_file = file(filename,"r")
-			if verbose:
-				print >>sys.stderr, "processing "+filename
+			in_file = search_and_open_file(filename)
 			write_file_flow(in_file,tty_dev)
 			in_file.close()
-
-
 
 if __name__ == "__main__":
 	main(sys.argv[1:])
