@@ -372,7 +372,7 @@
                   is cleared the normal NEXT routine runs.
                </para>
                <para>
-
+<!--
                   (IP) -> W fetch memory pointed by IP into "W" register
                   ...W now holds address of the Code Field
 
@@ -381,7 +381,7 @@
                   (W) -> X fetch memory pointed by W into "X" register
                   ...X now holds address of the machine code
 
-                  JP (X) jump to the address in the X register
+                  JP (X) jump to the address in the X register -->
                </para>
 
             </sect3>
@@ -392,14 +392,14 @@
                   return stack and loads the next flash cell pointed to
                   by the Working Register into the IP. Then it continues
                   with NEXT.
-
+<!--
                   PUSH IP onto the "return address stack"
 
                   W+2 -> IP W still points to the Code Field, so W+2 is
                   the address of the Body! (Assuming a 2-byte address --
                   other Forths may be different.)
 
-                  JUMP to interpreter ("NEXT")
+                  JUMP to interpreter ("NEXT") -->
                </para>
             </sect3>
             <sect3 id="II_UNNEST">
@@ -409,11 +409,11 @@
                   <command>EXIT</command>
                   in the dictionary. It pops the IP from the return
                   stack and jumps to NEXT.
-
+<!--
                   POP IP from the "return address stack"
 
                   JUMP to interpreter
-
+-->
 
                </para>
             </sect3>
