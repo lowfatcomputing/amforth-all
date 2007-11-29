@@ -5,10 +5,10 @@
 
 ]>
 
-<book>
+<book status="draft">
    <bookinfo>
-      <title>amforth - Forth for AVR ATmega mico controller</title>
-      <titleabbrev>amforth 2.5</titleabbrev>
+      <title>Forth for AVR ATmega microcontroller</title>
+      <productname>amforth 2.5</productname>
       <author>
          <personname>
             <firstname>Matthias</firstname>
@@ -23,50 +23,69 @@
          <holder>Matthias Trute</holder>
       </copyright>
    </bookinfo>
+
    <toc />
-   <chapter id="Overview">
+   <preface>
       <title>Overview</title>
-      <sect1 id="Introduction">
-         <title>Introduction</title>
-         <para>
-            amforth is a Forth system for the AVR Atmega micro
-            controller family. It works on the controller itself and
-            does not depend on any additional hard- or software.
-         </para>
+      <para>
+         amforth is a Forth system for the AVR Atmega micro controller
+         family. It works on the controller itself and does not depend
+         on any additional hard- or software.
+      </para>
 
-         <para>
-            amforth implements a large subset of the Forth standard
-            ANS94. Most of the CORE and CORE EXT words and a varying
-            number of words from the other word sets are implemented. It
-            is very easy to extend or shrink the actual word list for a
-            specific application by just editing the dictionary include
-            files.
-         </para>
+      <para>
+         amforth implements a large subset of the Forth standard ANS94.
+         Most of the CORE and CORE EXT words and a varying number of
+         words from the other word sets are implemented. It is very easy
+         to extend or shrink the actual word list for a specific
+         application by just editing the dictionary include files.
+      </para>
 
-         <para>
-            The dictionary resides in the flash memory. The build-in
-            compiler extends it directly.
-         </para>
+      <para>
+         The dictionary is located in the flash memory. The build-in
+         compiler extends it directly.
+      </para>
 
-         <para>
-            amforth gives full access to (almost) all interrupts. The
-            interrupt handler routines are forth words.
-         </para>
+      <para>
+         amforth provides full access to all interrupts. The interrupt
+         handler routines are forth words.
+      </para>
 
-         <para>
-            amforth is published under the GNU General Public License
-            version 2.
-         </para>
+      <para>
+         amforth is published under the GNU General Public License
+         version 2.
+      </para>
 
-         <para>The name amforth has no special meaning.</para>
-      </sect1>
+      <para>The name amforth has no special meaning.</para>
 
+      <para>
+         amforth is a new implementaion. The first code was written in
+         the summer of 2006. It is written "from scratch" using assembly
+         language and forth itself. It does not have a direct
+         relationship to any other forth system.
+      </para>
+
+      <para>
+         The first lines of code were written with the AVR Studio and
+         it's simulator. Soon the switch to real hardware (an evaluation
+         board) and to linux based development was done.
+      </para>
+   </preface>
+
+   <chapter id="FIRST_STEPS">
+      <title>First Steps</title>
+      <para>
+         The first steps require a working ATmega microcontroller with
+         an RS232 connection to an PC or a terminal like the
+         <productname class="trade">VT100</productname>
+         or similiar hardware. A customization may change these
+         requirements.
+      </para>
       <sect1 id="UserInterface">
-         <title>Appearance</title>
+         <title>User Interface</title>
          <para>
-            amforth has a minimalistic user interface. Connect your
-            system to a serial terminal (or a PC) and you get the forth
-            prompt
+            amforth has a simple user interface. Connect your system to
+            a serial terminal (or a PC) and you get the forth prompt
             <prompt>></prompt>
             .
             <screen>
@@ -78,26 +97,12 @@
             </screen>
          </para>
       </sect1>
-      <sect1 id="History">
-         <title>History</title>
-         <para>
-            amforth is a new implementaion. The first code was written
-            in the summer of 2006. It is written "from scratch" using
-            the assembly language and forth itself. It does not have a
-            direct relation to any other forth system.
-         </para>
 
-         <para>
-            The first lines of code were written with the AVR Studio and
-            it's simulator. Soon the switch to real hardware (some
-            evalation boards) and a linux based development was made.
-            The source code can be processed with both the AVR Studio
-            and the linux avr assembler avra.
-         </para>
+   </chapter>
 
-      </sect1>
-
-      <sect1 id="Hardware">
+   <chapter id="HARDWARE">
+      <title>Hardware</title>
+      <sect1 id="HW_FUSES">
          <title>Fuses</title>
          <para>
             Amforth uses the self programming features of the ATmegas to
@@ -107,12 +112,16 @@
             requirements of the serial terminal.
          </para>
       </sect1>
-   </chapter>
 
+   </chapter>
    <chapter id="Sources">
       <title>Source Organisation</title>
       <sect1 id="src_overview">
          <title>Overview</title>
+         <para>
+            The source code can be processed with both the AVR Studio
+            and the linux avr assembler avra.
+         </para>
          <para>
             amforth needs an assembler to generate the hex files for
             Flash and EEPROM. That does not mean that every word is
@@ -237,7 +246,8 @@
             amforth is a 16 bit Forth implementing the indirect
             threading model. The flash memory contains the whole
             dictionary. Some EEPROM cells are used to hold initial
-            values. The RAM contains buffers, variables and the stacks.
+            values and the dictionary pointers. The RAM contains
+            buffers, variables and the stacks.
          </para>
 
          <para>
@@ -269,42 +279,82 @@
                   </thead>
                   <tbody>
                      <row>
-                        <entry>Word pointer W</entry>
+                        <entry>W: Working Register</entry>
                         <entry>R26:R27</entry>
                      </row>
                      <row>
-                        <entry>Instruction Pointer IP</entry>
+                        <entry>IP: Instruction Pointer</entry>
                         <entry>XH:XL</entry>
                      </row>
                      <row>
-                        <entry>Return Stack Pointer RP</entry>
+                        <entry>RSP: Return Stack Pointer</entry>
                         <entry>SPH:SPL</entry>
                      </row>
                      <row>
-                        <entry>Data Stack Pointer DP</entry>
+                        <entry>PSP: Parameter Stack Pointer</entry>
                         <entry>YH:YL</entry>
+                     </row>
+                     <row>
+                        <entry>UP: User Pointer</entry>
+                        <entry>R4:R5</entry>
+                     </row>
+                     <row>
+                        <entry>TOS: Top Of Stack</entry>
+                        <entry>R6:R7</entry>
+                     </row>
+                     <row>
+                        <entry>X: temporary register</entry>
+                        <entry>ZH:ZL</entry>
                      </row>
                   </tbody>
                </tgroup>
             </table>
-            In addition the register pair ZH:ZL is used as a temporary
-            storage.
          </para>
+         <para>
+            In addition the register pair R0:R1 is used internally for
+            e.g. the result of multiply operations. The register pair
+            R2:R3 is used as the zero value in many words. These
+            registers cannot be used by own programs and should never be
+            changed.
+         </para>
+         <para>
+            The registers from R8 to R15 are currently unused. The
+            registers R16 to R25 used as temporary registers and can be
+            used freely within one module. They are overwritten by the
+            primitives.
+         </para>
+         <para>
+            The forth core uses the
+            <code>T</code>
+            bit in the machine status register SREG for signalling an
+            interrupt.
+         </para>
+      </sect1>
+      <sect1 id="Core_System">
+         <title>Core System</title>
 
-         <sect2>
+         <sect2 id="THREADMODEL">
+            <title>Threading Model</title>
+            <para>
+               amforth uses the classic indirect threaded variant of
+               forth.
+            </para>
+         </sect2>
+         <sect2 id="INNER_INTERPRETER">
             <title>Inner Interpreter</title>
             <para>
-               The inner interpreter implements the indirect threading
-               execution with an interrupt handling extension.
+               For the indirect threading model an inner interpreter
+               will be needed. The interpreter core is responsible for
+               the interrupt handling too.
             </para>
-            <sect3>
+            <sect3 id="II_EXECUTE">
                <title>EXECUTE</title>
                <para>
-                  Execute reads the address the IP currently points to
-                  and jumps to it.
+                  This operation reads the cell the IP currently points
+                  to and takes the value the destination of a jump.
                </para>
             </sect3>
-            <sect3>
+            <sect3 id="II_NEXT">
                <title>NEXT</title>
                <para>
                   The NEXT routine is the core of the inner interpreter.
@@ -321,25 +371,53 @@
                   code jumps to the interrupt handling part. If the flag
                   is cleared the normal NEXT routine runs.
                </para>
+               <para>
+
+                  (IP) -> W fetch memory pointed by IP into "W" register
+                  ...W now holds address of the Code Field
+
+                  IP+cell -> IP advance IP, just like a program counter
+
+                  (W) -> X fetch memory pointed by W into "X" register
+                  ...X now holds address of the machine code
+
+                  JP (X) jump to the address in the X register
+               </para>
+
             </sect3>
-            <sect3>
+            <sect3 id="II_NEST">
                <title>NEST</title>
                <para>
-                  NEST (or DO_COLON) pushes the current IP to the return
-                  stack and loads the next flash cell pointed to by the
-                  Word Pointer into the IP. Then it continues with NEXT.
+                  NEST (aka DO_COLON) pushes the current IP to the
+                  return stack and loads the next flash cell pointed to
+                  by the Working Register into the IP. Then it continues
+                  with NEXT.
+
+                  PUSH IP onto the "return address stack"
+
+                  W+2 -> IP W still points to the Code Field, so W+2 is
+                  the address of the Body! (Assuming a 2-byte address --
+                  other Forths may be different.)
+
+                  JUMP to interpreter ("NEXT")
                </para>
             </sect3>
-            <sect3>
+            <sect3 id="II_UNNEST">
                <title>UNNEST</title>
                <para>
                   The code for UNNEST is the word
                   <command>EXIT</command>
-                  in the dictionary. It simply pops the IP from the
-                  return stack and jumps to NEXT.
+                  in the dictionary. It pops the IP from the return
+                  stack and jumps to NEXT.
+
+                  POP IP from the "return address stack"
+
+                  JUMP to interpreter
+
+
                </para>
             </sect3>
-            <sect3>
+            <sect3 id="II_DODOES">
                <title>DO_DOES</title>
                <para>
                   This code is the runtime that is used by the code
@@ -354,20 +432,10 @@
                </para>
             </sect3>
          </sect2>
-      </sect1>
-      <sect1 id="Core_System">
-         <title>Core System</title>
 
-         <sect2>
-            <title>Threading Model</title>
-            <para>
-               amforth uses the classic indirect threaded variant of
-               forth.
-            </para>
-         </sect2>
-         <sect2>
+         <sect2 id="STACKS">
             <title>Stacks</title>
-            <sect3>
+            <sect3 id="DATASTACK">
                <title>Data Stack</title>
                <para>
                   The data stack uses the CPU register pair YH:YL as
@@ -383,7 +451,7 @@
                   the return stack (RAMEND) and grows downward.
                </para>
             </sect3>
-            <sect3>
+            <sect3 id="RETURNSTACK">
                <title>Return Stack</title>
                <para>
                   The Return Stack is the hardware stack of the
@@ -392,7 +460,7 @@
                </para>
             </sect3>
          </sect2>
-         <sect2>
+         <sect2 id="INTERRUPTS">
             <title>Interrupts</title>
             <para>
                amforth routes the low level interrupts into the forth
@@ -439,7 +507,7 @@
                   interpreter in background to handle interrupts? -->
             </para>
          </sect2>
-         <sect2>
+         <sect2 id="MULTITASKING">
             <title>Multitasking</title>
             <para>
                amforth does not really implement multitasking. It only
@@ -451,7 +519,7 @@
             </para>
          </sect2>
 
-         <sect2>
+         <sect2 id="EXCEPTIONS">
             <title>Exception Handling</title>
             <para>
                amforth implements the CATCH/THROW exception handling.
@@ -461,11 +529,39 @@
                itself. Other values silently restart QUIT.
             </para>
          </sect2>
+         <sect2 id="USERAREA">
+            <title>User Area</title>
+            <para>
+               The User Area is a special RAM based storage area. It
+               contains the USER variables and the User deferred
+               definitions. The access is based upon the value of the
+               user pointer UP. It can be changed with the words UP! and
+               read with UP@. The UP itself is stored in a register
+               pair.
+            </para>
+            <para>
+               The size of the user area is defined at compile time in
+               the device definition section. This may change in future
+               versions.
+            </para>
+
+            <para>
+               The User Area is used to provide task local information.
+               Without an active multitasker it contains the starting
+               values for the stackpointers, the deferred words for
+               terminal IO, the BASE variable and the exception handler.
+            </para>
+            <para>
+               A multitasker can use the first 2 cells for own purposes.
+               In that situation the user area is/can be seen as the
+               task control block.
+            </para>
+         </sect2>
       </sect1>
       <sect1 id="Memory_Layout">
          <title>Memory Layout</title>
 
-         <sect2>
+         <sect2 id="ML_FLASH">
             <title>Flash</title>
             <para>
                The flash memory is divided in 5 sections. The first
@@ -570,7 +666,7 @@
                </para>
             </sect3>
          </sect2>
-         <sect2>
+         <sect2 id="ML_EEPROM">
             <title>EEPROM</title>
             <para>
                The build-in EEPROM contains vital dictionary pointer and
@@ -602,7 +698,7 @@
             </para>
 
          </sect2>
-         <sect2>
+         <sect2 id="ML_RAM">
             <title>RAM</title>
             <para>
                The RAM address space is divided into three sections: the
@@ -636,31 +732,6 @@
                word is smart enough to distinguish between the varios
                xdefer definitions.
             </para>
-            <sect3>
-               <title>User Area</title>
-               <para>
-                  The User Area is a special RAM based storage area. It
-                  contains the USER variables and the User deferred
-                  definitions. The access is based upon the value of the
-                  user pointer UP. It can be changed with the words UP!
-                  and read with UP@. The UP itself is stored in a
-                  register pair.
-               </para>
-               <para>
-                  The size of the user area is defined at compile time
-                  in the device definition section. This may change in
-                  future versions.
-               </para>
-               <para>
-                  The User Area contains both variables (BASE) and
-                  deferred words for the terminal IO (EMIT, KEY, EMIT?,
-                  KEY?, /KEY). Other pre-defined locations are the
-                  HANDLER variable (needed for the exception handling)
-                  and the addresses of the stack pointers for the
-                  inactive tasks, if multitasking is implemented and
-                  used.
-               </para>
-            </sect3>
          </sect2>
       </sect1>
 
@@ -1020,7 +1091,7 @@
                homepage.
             </para>
          </sect2>
-         <sect2 id="uplaoder">
+         <sect2 id="TOOLS_UPLOAD">
             <title>Uploader</title>
             <para>
                To transfer forth code to the microcontroller some
