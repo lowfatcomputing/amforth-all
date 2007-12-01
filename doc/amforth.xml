@@ -42,7 +42,7 @@
       </para>
 
       <para>
-         The dictionary is located in the flash memory. The build-in
+         The dictionary is located in the flash memory. The built-in
          compiler extends it directly.
       </para>
 
@@ -59,7 +59,7 @@
       <para>The name amforth has no special meaning.</para>
 
       <para>
-         amforth is a new implementaion. The first code was written in
+         amforth is a new implementation. The first code was written in
          the summer of 2006. It is written "from scratch" using assembly
          language and forth itself. It does not have a direct
          relationship to any other forth system.
@@ -78,7 +78,7 @@
          The first steps require a working ATmega microcontroller with
          an RS232 connection to an PC or a terminal like the
          <productname class="trade">VT100</productname>
-         or similiar hardware. A customization may change these
+         or similar hardware. A customization may change these
          requirements.
       </para>
       <sect1 id="UserInterface">
@@ -107,8 +107,8 @@
          <para>
             Amforth uses the self programming features of the ATmegas to
             extend the dictionary. It is ok to use the factory default
-            settings plus (!) changes for the oszillator settings. It is
-            recommended to use a higher CPU freqency to meet the timing
+            settings plus (!) changes for the oscillator settings. It is
+            recommended to use a higher CPU frequency to meet the timing
             requirements of the serial terminal.
          </para>
       </sect1>
@@ -127,15 +127,14 @@
             Flash and EEPROM. That does not mean that every word is
             actually written in assembly language however. Most of the
             words are written in forth itself, but are precompiled into
-            assembly
-            <emphasis>syntax</emphasis>
-            . This solves btw the chicken-and-egg problem too: how
-            compile the compiler words.
+            assembly syntax. This solves btw the chicken-and-egg problem
+            too: how to compile the compiler words.
          </para>
          <para>
-            amforth consists of a great number of relativly small source
-            files. Nearly all words are coded in there own source file.
-            A number of files or organized with include files, called
+            amforth consists of a great number of relatively small
+            source files. Nearly all words are coded in their own source
+            file. A number of files are organized with include files,
+            called
             <filename>dict*.inc</filename>
             . Currently 3 such files exists:
             <filename>dict_minimum</filename>
@@ -153,14 +152,14 @@
             . The first one is the master file and the only one the
             application needs to include. The file
             <filename>macros.asm</filename>
-            contains some useful assembler macros which makes the source
+            contains some useful assembler macros that make the source
             code easier to read.
          </para>
       </sect1>
       <sect1 id="src_core_entry">
          <title>Core system</title>
          <para>
-            Thee file
+            The file
             <filename>amforth.asm</filename>
             is the core of amforth. Here is the startup code for the
             microcontroller, and the forth inner interpreter with the
@@ -169,20 +168,23 @@
          <sect2 id="src_core_dict">
             <title>Dictionary files</title>
             <para>
-               The dictionary files have two tasks: For one they include
-               the word definition files. The other aspect is there
-               location in the resulting flash layout. The file
+               The dictionary files have two tasks: First they include
+               the word definition files. Second, they determine each
+               word's location in the resulting flash layout. The file
                dict_high.inc contains all words for the NRWW flash
-               section, which cannot be used otherwise. It is
-               recommended to maximize the usage of this area, since the
-               word
-               <command>i!</command>
-               cannot write to this address range.
+               section, Since the word
+               <command>I!</command>
+               cannot write to this address range, no new words can be
+               compiled to this section at runtime. Thus it is advisable
+               to include as many words as possible in
+               <filename>dict_high.inc</filename>
+               if the amount of writable dictionary space is an issue.
             </para>
             <para>
                A useful forth system needs at least the file
-               dict_minimum.inc. Here are the serial IO and the forth
-               interpreter words included.
+               <filename>dict_minimum.inc</filename>
+               , which includes the serial IO and the forth interpreter
+               words.
             </para>
             <para>
                An almost complete forth system with a compiler needs the
@@ -192,7 +194,7 @@
                There are a few words left out from the dictionary lists.
                These words are either not always needed or are some
                variants of existing words or simply cannot be included
-               to the core system due to size limitations in the NRWW
+               in the core system due to size limitations in the NRWW
                section with smaller atmegas.
             </para>
          </sect2>
@@ -200,10 +202,10 @@
             <title>Device Settings</title>
             <para>
                Every Atmega has it own specific settings. They are based
-               on the official include files provided by Atmel. Here are
-               the most important settings for the serial IO port (which
-               port and which parameters), the interrupt vectors and
-               some macros defined.
+               on the official include files provided by Atmel, which
+               define the most important settings for the serial IO port
+               (which port and which parameters), the interrupt vectors
+               and some macros.
             </para>
             <para>
                The last setting is a string with the device name in
@@ -214,10 +216,10 @@
       <sect1>
          <title>Application Code</title>
          <para>
-            Every build of amforth does need an application. There are a
-            few sample applications, which can be used either directly
-            (such as the AVR Butterfly) or serve as a source for
-            inspriration (template application).
+            Every build of amforth needs an application. There are a few
+            sample applications, which can be used either directly (such
+            as the AVR Butterfly) or serve as a source for inspiration
+            (template application).
          </para>
          <para>
             The structure is basically always the same. First the file
@@ -232,8 +234,8 @@
             utility such as make itself is recommended. The assembler
             needs quite a few settings and the proper order of the
             include directories. The sample applications use the
-            standard make, others such as ant or maven can be used as
-            well.
+            standard make, but others such as ant or maven can be used
+            as well.
          </para>
       </sect1>
    </chapter>
@@ -311,11 +313,11 @@
             </table>
          </para>
          <para>
-            In addition the register pair R0:R1 is used internally for
-            e.g. the result of multiply operations. The register pair
-            R2:R3 is used as the zero value in many words. These
-            registers cannot be used by own programs and should never be
-            changed.
+            In addition the register pair R0:R1 is used internally e.g.
+            to hold the the result of multiply operations. The register
+            pair R2:R3 is used as the zero value in many words. These
+            registers cannot be used by user programs and should never
+            be changed.
          </para>
          <para>
             The registers from R8 to R15 are currently unused. The
@@ -326,7 +328,7 @@
          <para>
             The forth core uses the
             <code>T</code>
-            bit in the machine status register SREG for signalling an
+            bit in the machine status register SREG for signaling an
             interrupt.
          </para>
       </sect1>
@@ -351,7 +353,7 @@
                <title>EXECUTE</title>
                <para>
                   This operation reads the cell the IP currently points
-                  to and takes the value the destination of a jump.
+                  to and uses the value as the destination of a jump.
                </para>
             </sect3>
             <sect3 id="II_NEXT">
@@ -369,37 +371,41 @@
                   <command>T</command>
                   flag in the machine status register. If it is set, the
                   code jumps to the interrupt handling part. If the flag
-                  is cleared the normal NEXT routine runs.
+                  is cleared the following normal NEXT routine runs.
                </para>
                <para>
-<!--
-                  (IP) -> W fetch memory pointed by IP into "W" register
-                  ...W now holds address of the Code Field
-
-                  IP+cell -> IP advance IP, just like a program counter
-
-                  (W) -> X fetch memory pointed by W into "X" register
-                  ...X now holds address of the machine code
-
-                  JP (X) jump to the address in the X register -->
+                  <!-- 
+                     (IP) -> W fetch memory pointed by IP into "W" register
+                     ...W now holds address of the Code Field
+                     
+                     IP+cell -> IP advance IP, just like a program counter
+                     
+                     (W) -> X fetch memory pointed by W into "X" register
+                     ...X now holds address of the machine code
+                     
+                     JP (X) jump to the address in the X register -->
                </para>
 
             </sect3>
             <sect3 id="II_NEST">
                <title>NEST</title>
                <para>
-                  NEST (aka DO_COLON) pushes the current IP to the
-                  return stack and loads the next flash cell pointed to
-                  by the Working Register into the IP. Then it continues
-                  with NEXT.
-<!--
-                  PUSH IP onto the "return address stack"
-
-                  W+2 -> IP W still points to the Code Field, so W+2 is
-                  the address of the Body! (Assuming a 2-byte address --
-                  other Forths may be different.)
-
-                  JUMP to interpreter ("NEXT") -->
+                  NEST (aka DO_COLON) first pushes the IP (which points
+                  to the next word to be executed when the current word
+                  is done) to the return stack. It then increments W by
+                  one flash cell, so that it points to the body of the
+                  (colon) word, and sets IP to point to same location.
+                  Then it continues with NEXT, which begins executing
+                  the words in the body of the colon word
+                  <!--                   
+                     PUSH IP onto the "return address stack"
+                     
+                     W+2 -> IP W still points to the Code Field, so W+2 is
+                     the address of the Body! (Assuming a 2-byte address - -
+                     other Forths may be different.)
+                     
+                     JUMP to interpreter ("NEXT")
+                  -->
                </para>
             </sect3>
             <sect3 id="II_UNNEST">
@@ -409,11 +415,11 @@
                   <command>EXIT</command>
                   in the dictionary. It pops the IP from the return
                   stack and jumps to NEXT.
-<!--
-                  POP IP from the "return address stack"
-
-                  JUMP to interpreter
--->
+                  <!-- 
+                     POP IP from the "return address stack"
+                     
+                     JUMP to interpreter
+                  -->
 
                </para>
             </sect3>
@@ -423,7 +429,7 @@
                   This code is the runtime that is used by the code
                   compiled by the forth word
                   <command>DOES</command>
-                  . It it closly tight to the action performed by the
+                  . It it closely tied to the action performed by the
                   code compiled by DOES. That code pushed the current
                   address in the data field to the returnstack and jumps
                   to DO_DOES. DO_DOES gets that address back, saves the
@@ -438,16 +444,17 @@
             <sect3 id="DATASTACK">
                <title>Data Stack</title>
                <para>
-                  The data stack uses the CPU register pair YH:YL as
-                  it's data pointer. The Top-Of-Stack element (TOS) is
-                  in a register pair. Compared to a straight forward
+                  The data stack uses the CPU register pair YH:YL as its
+                  data pointer. The Top-Of-Stack element (TOS) is in a
+                  register pair. Compared to a straight forward
                   implementation this approach saves both code space and
                   gives higher execution speed (approx 10-20 %). Saving
-                  more stack elements does not really give more profit
-                  (much more code and only little speed enhancements).
+                  more stack elements does not really provide a greater
+                  benefit (much more code and only little speed
+                  enhancements).
                </para>
                <para>
-                  The data stack starts at a configurable distant below
+                  The data stack starts at a configurable distance below
                   the return stack (RAMEND) and grows downward.
                </para>
             </sect3>
@@ -467,8 +474,8 @@
                inner interpreter. The inner interpreter switches the
                execution to a predefined word if an interrupt occurs.
                When that word finishes execution, the interrupted word
-               is continued. The interrupt handlers are completly normal
-               forth words without any stack effect.
+               is continued. The interrupt handlers are completely
+               normal forth words without any stack effect.
             </para>
 
             <para>
@@ -476,20 +483,20 @@
                first one is responsible for the low level part. It is
                called whenever an interrupt occurs. The code is the same
                for all interrupts. It takes the number of the interrupt
-               from it's vector address and stores this in a RAM cell.
+               from its vector address and stores this in a RAM cell.
                Then the low level ISR sets the
                <command>T</command>
                flag in the status register of the controller. The inner
-               interpreter checks every time it is entered this flag and
+               interpreter checks this flaf every time it is entered and
                if it is set it switches to interrupt handling at forth
-               level. This approach has an penalty of 2 CPU cycles for
+               level. This approach has a penalty of 2 CPU cycles for
                checking and skipping the branch instruction to the isr
                forth code.
             </para>
 
             <para>
                The ISR at forth level is a RAM based table much like the
-               low level interrupt table of the exection tokens
+               low level interrupt table of the execution tokens
                associated with the interrupt number.
             </para>
 
@@ -523,9 +530,9 @@
             <title>Exception Handling</title>
             <para>
                amforth implements the CATCH/THROW exception handling.
-               The outmost catch frame is located at the interpreter
+               The outermost catch frame is located at the interpreter
                level in the word QUIT. If an exception with the value -1
-               or -2 is throws, QUIT will print a message and re-start
+               or -2 is thrown, QUIT will print a message and re-start
                itself. Other values silently restart QUIT.
             </para>
          </sect2>
@@ -534,10 +541,9 @@
             <para>
                The User Area is a special RAM based storage area. It
                contains the USER variables and the User deferred
-               definitions. The access is based upon the value of the
-               user pointer UP. It can be changed with the words UP! and
-               read with UP@. The UP itself is stored in a register
-               pair.
+               definitions. Access is based upon the value of the user
+               pointer UP. It can be changed with the word UP! and read
+               with UP@. The UP itself is stored in a register pair.
             </para>
             <para>
                The size of the user area is defined at compile time in
@@ -564,7 +570,7 @@
          <sect2 id="ML_FLASH">
             <title>Flash</title>
             <para>
-               The flash memory is divided in 5 sections. The first
+               The flash memory is divided into 5 sections. The first
                section, starting at address 0, contains the interrupt
                vector table for the low level interrupt handling and a
                character string with the name of the controller in plain
@@ -581,7 +587,7 @@
 
             <para>
                The 3rd section contains the low level interrupt handling
-               routines. The interrupt handler is very closly tight to
+               routines. The interrupt handler is very closely tied to
                the inner interpreter. It is located near the first
                section to use the faster relative jump instructions.
             </para>
@@ -595,9 +601,9 @@
 
             <para>
                The last section is identical to the boot loader section
-               of the ATmegas. It is also known as NRWW area. Here is
-               the heart of amforth: The inner interpreter and most of
-               the words coded in Assembly language.
+               of the ATmegas. It is also known as the NRWW area. Here
+               is the heart of amforth: The inner interpreter and most
+               of the words coded in Assembly language.
             </para>
 
             <para>
@@ -605,7 +611,7 @@
                with a dictionary in flash the controller needs to write
                to the flash. The ATmega architecture provides a
                mechanism called self-programming by using a special
-               instruction and a rather complex algorith. This
+               instruction and a rather complex algorithm. This
                instruction only works in the boot loader/NRWW section.
                amforth uses this instruction in the word I!. Due to the
                fact that the self programming is a lot more then only a
@@ -619,7 +625,7 @@
             </para>
             <para>
                Atmegas can have more than 64 KB Flash. This requires
-               more than 16 bit address bit, which is more than the cell
+               more than a 16 bit address, which is more than the cell
                size. For one type of those bigger atmegas there will be
                an solution with 16 bit cell size: Atmega128 Controllers.
                They can use the whole address range with an
@@ -633,7 +639,7 @@
             </para>
             <para>
                The technique described above does not work for the
-               Atmega256x. These controllers definitly need a bigger
+               Atmega256x. These controllers definitely need a bigger
                cell size: 17 bits (or more).
             </para>
             <sect3>
@@ -652,8 +658,8 @@
                   buffer. While doing the copying a check is performed
                   whether a flash erase cycle is needed. The flash erase
                   can be avoided if no bit is turned from 0 to 1. Only
-                  if a bit is switched from 0 to 1 a flash page erase
-                  operation has to be done. In the fourth step the new
+                  if a bit is switched from 0 to 1 must a flash page
+                  erase operation be done. In the fourth step the new
                   flash data is written and the flash is set back to
                   normal operation and the interrupt flag is restored.
                </para>
@@ -669,18 +675,18 @@
          <sect2 id="ML_EEPROM">
             <title>EEPROM</title>
             <para>
-               The build-in EEPROM contains vital dictionary pointer and
-               other persistant data. They need only a few EEPROM cells.
+               The built-in EEPROM contains vital dictionary pointer and
+               other persistent data. They need only a few EEPROM cells.
                The remaining space is available for user programs. The
                easiest way to use EEPROM is the use of forth VALUEs.
                There intended design pattern (read often, write seldom)
-               is like that for the tyoical EEPROM usage.
+               is like that for the typical EEPROM usage.
             </para>
 
             <para>
                Another use for EEPROM cells is to hold execution tokens.
                The default system uses this for the turnkey vector. This
-               is a eeprom variable that reads and executes the XT at
+               is an EEPROM variable that reads and executes the XT at
                runtime. It is based on the DEFER/IS standard. To define
                a deferred word in the EEPROM use the Edefer defintion
                word. The standard word IS is used to put a new XT into
@@ -688,7 +694,7 @@
             </para>
 
             <para>
-               Lowlevel space management is done through the the EDP
+               Low level space management is done through the the EDP
                variable. This is not a forth value but a EEPROM based
                variable. To read the current value an e@ operation must
                be used, changes are written back with e!. It contains
@@ -708,16 +714,16 @@
             </para>
 
             <para>
-               amforth needs a few (real) RAM locations for it's
-               internal data structures. The biggest part are the
-               buffers for the terminal IO. RAM Memory is managed by the
-               words VARIABLE and ALLOT.
+               amforth needs a few (real) RAM locations for its internal
+               data structures. The biggest part are the buffers for the
+               terminal IO. RAM Memory is managed by the words VARIABLE
+               and ALLOT.
             </para>
 
             <para>
-               With amforth all three sections can be access using there
-               RAM address. That makes ist quite easy to work with words
-               like
+               With amforth all three sections can be accessed using
+               their RAM addresses. That makes it quite easy to work
+               with words like
                <command>C@</command>
                . The word
                <command>!</command>
@@ -725,12 +731,16 @@
                is stored at the lower address.
             </para>
             <para>
-               For the RAM exists a word Rdefer which implements a
-               deferred word, placed in RAM. As a special case
-               implements the word Udefer a deferred word in the user
-               area. To put a XT into them the word IS is used. This
-               word is smart enough to distinguish between the varios
-               xdefer definitions.
+               For the RAM there is the word
+               <command>Rdefer</command>
+               which implements a deferred word, placed in RAM. As a
+               special case there is the word
+               <command>Udefer</command>
+               , which sets up a deferred word in the user area. To put
+               an XT into them the word
+               <command>IS</command>
+               is used. This word is smart enough to distinguish between
+               the various xDefer definitions.
             </para>
          </sect2>
       </sect1>
@@ -759,9 +769,11 @@
             </para>
             <para>The following words have non-standard behavior</para>
             <para>
-               words created with : are immediately visible. A earlier
-               definition with the same name will never be accessible.
-               Work around may be done with DEFER/IS.
+               words created with
+               <command>:</command>
+               are immediately visible. An earlier definition with the
+               same name will never be accessible. Work around may be
+               done with <command>DEFER</command>/<command>IS</command>.
             </para>
             <para>loop counters are checked on signed compares.</para>
          </sect2>
@@ -775,9 +787,9 @@
          <sect2 id="ANS_DOUBLENUMBER">
             <title>Double Number</title>
             <para>
-               Double cell numbers do work as aspected. Not all words
-               are implemented and they cannot be entered or dot-ed
-               directly however.
+               Double cell numbers do work as expected. Not all words
+               are implemented. Entering them directly using the dot-
+               notation does not work currently.
             </para>
          </sect2>
          <sect2 id="ANS_EXCEPTION">
@@ -806,7 +818,7 @@
             <para>
                The word MS is implemented as the word 1MS which busy
                waits almost exactly 1 millisecond. The calculation is
-               based upon the frequency specified at compiletime.
+               based upon the frequency specified at compile time.
             </para>
 
             <para>
@@ -858,7 +870,7 @@
             </para>
             <para>
                <command>STATE</command>
-               works as specified
+               works as specified.
             </para>
             <para>
                The word
@@ -882,7 +894,7 @@
                <command>CS-PICK</command>
                and
                <command>AHEAD</command>
-               are not imlemented. The compiler words operate with the
+               are not implemented. The compiler words operate with the
                more traditional
                <command>MARK</command>
                /
@@ -953,12 +965,12 @@
          <sect2 id="AMFORTH_MEMORY">
             <title>Memory</title>
             <para>
-               Atmega microcontroller have three different types of
+               Atmega microcontrollers have three different types of
                memory. RAM, EEPROM and Flash. The words
                <command>@</command>
                and
                <command>!</command>
-               work on the RAM address space (which include IO Ports and
+               work on the RAM address space (which includes IO Ports and
                the CPU register), the words
                <command>e@</command>
                and
@@ -982,7 +994,7 @@
             </para>
 
             <para>
-               For RAM only exists the special word pair
+               For RAM only there is the special word pair
                <command>c@</command>
                /
                <command>c!</command>
@@ -1017,19 +1029,19 @@
             </para>
             <para>
                The predefined words use an interrupt driven IO with an
-               buffer for input and output. They do not implement an
+               buffer for input and output. They do not implement a
                handshake procedure (XON/XOFF or CTS/RTS). The default
-               terminal device is USART0 (if more than one USART ports
-               are available).
+               terminal device is USART0 (if more than one USART port
+               is available).
             </para>
             <para>
-               The basic words include an call of the
+               The basic words include a call of the
                <command>PAUSE</command>
                command to enable the use of multitasking.
             </para>
             <para>
                Other IO depend on the hardware connected to the
-               microcontroller. Code exist to use LCD and TV devices.
+               microcontroller. Code exists to use LCD and TV devices.
                CAN, USB or I2C are possible as well. Another use of the
                redirect feature is the following: consider some input
                data in external EEPROM (or SD-Cards). To read it, the
@@ -1095,11 +1107,11 @@
             <title>Uploader</title>
             <para>
                To transfer forth code to the microcontroller some
-               precautions need to taken. During flash write operation
+               precautions need to taken. During a flash write operation
                all interrupts are turned off. This may lead to lost
                characters on the serial line. One solution is to send
                very slowly and hope that the receiver gets all
-               characters. The programm
+               characters. The program
                <command>ascii-xfer</command>
                can do the job:
                <cmdsynopsis>
@@ -1120,12 +1132,12 @@
                <ulink url="http://pix.test.at/">
                   <citetitle>pix</citetitle>
                </ulink>
-               . His algorithm checks for every character sent to
-               controller its echo. At lineends the uploader waits for
+               . His algorithm checks for the echo of every character sent to
+               the controller. At line ends the uploader waits for
                the ok prompt to continue with the next line.
             </para>
             <para>
-               This algorithm work very fast without the risk of lost
+               This algorithm works very fast without the risk of lost
                characters. An extension of this script provides limited
                library support. In the source files a command
                <cmdsynopsis>
@@ -1136,8 +1148,8 @@
                <filename>filename</filename>
                instead of the two words. The sources will only work with
                this uploader utility, others will trigger the
-               "word-not-found" exception on the controller unless they
-               recognise the #include syntax (similiar to the c
+               "word-not-found" exception on the microcontroller unless they
+               recognize the #include syntax (similar to the c
                preprocessor).
             </para>
          </sect2>
@@ -1149,8 +1161,8 @@
          <title>ANS Words</title>
          <para>
             Support for Blocks may be useful. It is not trivial to
-            implement a standard 1KB block buffer on an Atmega with 1KB
-            RAM at all. It can be useful to deploy block sizes smaller
+            implement a standard 1KB block buffer on an Atmega with only
+            1KB RAM. It can be useful to deploy block sizes smaller
             than 1KB to match the native block sizes of the attached
             storage devices: serial EEPROM have e.g. 64 bytes, SD-Cards
             have 512 bytes.
@@ -1159,7 +1171,7 @@
       <sect1>
          <title>More Controller Types</title>
          <para>
-            amforth works on the whole range of Atmegas. The only
+            amforth can run on the whole range of Atmegas. The only
             limiting factor is the flash size: amforth needs 7 KB for
             itself and can address 128 KB. The ATmega256x may be
             supported with a change in the cell size from 2 to 3 bytes.
