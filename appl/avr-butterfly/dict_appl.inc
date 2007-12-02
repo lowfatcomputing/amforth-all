@@ -5,7 +5,6 @@
 
 .include "words/udot.asm"
 .include "words/dot-s.asm"
-.include "words/idump.asm"
 
 .include "words/dotstring.asm"
 .include "words/squote.asm"
