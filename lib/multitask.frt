@@ -1,38 +1,86 @@
-\ cooperative multitasker
-\ need amforth 2.5 and up due to changed user area
-\ version 0.1 (alfa quality)
+\ -------------------------------------------------------------------
+\ Cooperative Multitasker based on 
+\ Message-ID: <1187362648.046634.262200@o80g2000hse.googlegroups.com>
+\ From:  Brad Eckert <nospaambrad1@tinyboot.com>
+\ Newsgroups: comp.lang.forth
+\ Subject: Re: Tiny OS based on byte-code interpreter
+\ Date: Fri, 17 Aug 2007 07:57:28 -0700
+
+\ PAUSE's TCB (task control block) structure
+\ is the user area.
+\ Offs_| _Name___ | __Description__________________________ |
+\   0  | status   | xt of word that resumes this task       | <-- UP
+\   2  | follower | address of the next task's status       |
+\   4  | RP0      | initial return stack pointer            |
+\   6  | SP0      | initial data stack pointer              |
+\   8  | sp       | -> top of stack                         |
+\  10  | handler  | catch/throw handler                     |
+\ ... more user variables
 
 marker _multitask_
+
+decimal
 
 0 user status
 2 user follower
 
-:noname ( tcb1 -- tcb2 ) cell+ @  dup @ 1+ >r ; 
-    constant pass
-:noname  ( tcb1 -- )  up! sp @ sp! rp! ;
-    constant wake
+variable taskswitches
+variable passcounter
+variable wakecounter
+0 taskswitches !
+0 passcounter !
+0 wakecounter !
 
-\ let next task execute
-: multitaskpause   ( -- )     rp@ sp@ sp ! follower @ dup @ 1+  >r ; 
+:noname ( 'status1 -- 'status2 ) 
+    cell+ @ dup @ 1+ >r 
+;  constant pass
+
+:noname  ( 'status1 -- )  
+    up! sp @ sp! rp!
+; constant wake
+
+\ switch to the next task in the list
+: multitaskpause   ( -- )     
+    rp@ sp@ sp ! follower @ dup @ 1+ >r 
+; 
 
 : stop         ( -- )     pass status ! pause ; \ sleep current task
-: task-sleep   ( tcb -- ) pass swap ! ;         \ sleep another task
-: task-awake   ( tcb -- ) wake swap ! ;         \ wake another task
+: task-sleep   ( tid -- ) pass swap ! ;         \ sleep another task
+: task-awake   ( tid -- ) wake swap ! ;         \ wake another task
+
+: cell- negate cell+ negate ;
 
 \ continue the code as a task in a predefined tcb
-: activate ( tcb -- )
-    \ save the current TOR to the TOR of the task
-    r> over 4 +  @ 2 - !      ( -- tcb )
-    \ fake some stack operations rp@
-    dup dup cell+ cell+ @ 4 -  \ calculate the value of rp
-    \ read the data stack pointer
-        swap 6 + @ 2 - ( -- tcb rp sp0 )
-	swap over !    ( -- tcb sp0 )
-	\ write sp
-	4 - ( new sp value ) over 8 + ( location of sp in tcb) 
-	! ( -- tcb )
-    task-awake
+: activate ( tid -- )
+   dup    6 + @ cell-
+   over   4 + @ cell- ( -- tid sp rp )     \ point to RP0 SP0
+   r> over  !         ( save entry at rp ) \ skip all after ACTIVATE
+   over !             ( save rp at sp )    \ save stack context for WAKE
+   over 8 + !         ( save sp in tos )
+   task-awake 
 ;
+
+\ task:     creates the task data structures, leaves the tid on stack
+\ alsotask  appends the tcb to the (circular, existing) list of TCB
+
+
+: task: ( rs-size ds-size -- tid )
+	\ allocate stack memory
+	heap e@ >r   \ allocate user area
+	24 allot     \ default user size
+	allot heap e@  ( -- rs-size sp0 )
+	    r@ 6 + !   (  ... place sp0 in tcb )
+	allot heap e@  ( -- rp0 )
+	    r@ 4 + !      (  ... place it in tcb )
+	r>
+	['] tx0  over 14 + ! \ is emit
+	['] tx0? over 16 + ! \ is emit?
+	['] rx0  over 18 + ! \ is key
+	['] rx0? over 20 + ! \ is key?
+	['] noop over 22 + ! \ is /key
+	2 allot
+;
+
 
 \ stop multitasking
 : single ( -- ) \ initialize the multitasker with the serial terminal
@@ -44,24 +92,6 @@ marker _multitask_
     ['] multitaskpause is pause
 ;
 
-\ task:     creates the task data structures, leaves the TCB on stack
-\ alsotask  appends the TCB to the (circular, existing) list of TCB
-
-decimal
-
-: task: ( rs-size ds-size -- tcb )
-	\ allocate stack memory
-	heap e@ >r ( allocate user area, move to return stack )
-	24 allot \ user size
-	allot heap e@ 1-  ( -- rs-size sp0 )
-	r@ 6 + !          (  ... place it in tcb )
-	allot heap e@ 1-  ( -- rp0 )
-	   r@  4 + !      (  ... place it in tcb )
-	0  r@  8 + !      (  ... init handler )
-	0  r@ 10 + !   ( clear handler )
-	10 r@ 12 + !  ( set base to decimal )
-	r>            ( -- tcb )
-;
 
 \ initialize the multitasker with the current task only
 : onlytask ( -- ) 
@@ -70,32 +100,39 @@ decimal
 ;
 
 \ insert new task structure into task list
-: alsotask      ( tcb -- )
+: alsotask      ( tid -- )
    ['] pause defer@ >r \ stop multitasking
    single
-   follower @   ( -- tcb f) 
-   over         ( -- tcb f tcb )
-   follower !   ( -- tcb f )
-   swap cell+   ( -- f tcb-f )
+   follower @   ( -- tid f) 
+   over         ( -- tid f tid )
+   follower !   ( -- tid f )
+   swap cell+   ( -- f tid-f )
    !
    r> is pause  \ restore multitasking
 ;
 
-
-: task-list ( -- )
-    status ( -- tcb ) \ starting value
+\ print all tasks with there id and status
+: tlist ( -- )
+    status ( -- tid ) \ starting value
     dup
-    begin      ( -- tcb1 ctcb )
-	dup u.  ( -- tcb1 ctcb )
-	dup @  ( -- tcb1 ctcb status )
+    begin      ( -- tid1 ctid )
+	dup u. ( -- tid1 ctid )
+	dup @  ( -- tid1 ctid status )
 	  dup 
-	    wake = if ."  running"  drop else
+	    wake = if ."   running" drop else
 	    pass = if ."  sleeping" else
-	              ."  unknown"  then
+	              ."   unknown" then
 	then
+	dup 4 + @ ."   rp0=" dup u. cell- @ ."  TOR=" u.
+	dup 6 + @ ."   sp0=" dup u. cell- @ ."  TOS=" u.
+	dup 8 + @ ."    sp=" u.
+	
 	cr
-	cell+ @ ( -- tcb1 next-tcb )
+	cell+ @ ( -- tid1 next-tid )
 	over  over =     ( -- f flag)
     until
     drop drop
+    ." Multitasker is " 
+    ['] pause defer@ ['] noop = if ." not " then
+    ." running"
 ;
