@@ -36,7 +36,7 @@ variable wakecounter
 ;  constant pass
 
 :noname  ( 'status1 -- )  
-    up! sp @ sp! rp!
+	up! sp @ sp! rp! 
 ; constant wake
 
 \ switch to the next task in the list
@@ -55,14 +55,13 @@ variable wakecounter
    dup    6 + @ cell-
    over   4 + @ cell- ( -- tid sp rp )     \ point to RP0 SP0
    r> over  !         ( save entry at rp ) \ skip all after ACTIVATE
-   over !             ( save rp at sp )    \ save stack context for WAKE
+   1- over  !         (  save rp at sp )    \ save stack context for WAKE
    over 8 + !         ( save sp in tos )
    task-awake 
 ;
 
 \ task:     creates the task data structures, leaves the tid on stack
 \ alsotask  appends the tcb to the (circular, existing) list of TCB
-
 
 : task: ( rs-size ds-size -- tid )
 	\ allocate stack memory
@@ -71,8 +70,10 @@ variable wakecounter
 	allot heap e@  ( -- rs-size sp0 )
 	    r@ 6 + !   (  ... place sp0 in tcb )
 	allot heap e@  ( -- rp0 )
-	    r@ 4 + !      (  ... place it in tcb )
+	    r@ 4 + !   (  ... place it in tcb )
 	r>
+	     0   over 10 + ! \ handler
+	     16  over 12 + ! \ base
 	['] tx0  over 14 + ! \ is emit
 	['] tx0? over 16 + ! \ is emit?
 	['] rx0  over 18 + ! \ is key
