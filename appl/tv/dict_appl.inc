@@ -1,6 +1,8 @@
 ; this dictionary contains optional words
 ; they may be moved to the core dictionary if needed
 
+.include "dict_compiler.inc"
+
 .include "words/d-2star.asm"
 .include "words/d-plus.asm"
 .include "words/d-minus.asm"
@@ -19,4 +21,3 @@
 
 .include "words/applturnkey.asm"
 
-.include "dict_compiler.inc"

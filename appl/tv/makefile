@@ -3,7 +3,7 @@
 # AMFORTH=../../releases/2.0
 AMFORTH=../../trunk
 AVRDUDE=avrdude
-AVRA=/opt/cdk4avr/bin/avra
+AVRA=avra
 INCLUDE=-I ~/lib/avra -I $(AMFORTH)
 
 USB=-c avrisp2  -P /dev/ttyS1 -F
