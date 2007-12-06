@@ -4,20 +4,6 @@
     >r 1- over < swap r> 1+ < and 
 ;
 
-
-\ dump flash content
-: idump ( addr len -- )
-    base @ >r hex
-    0 do
-	i 
-	    over +  dup 5 u.r
-	    i@ 5 u.r
-	    cr
-    loop
-    drop
-    r> base !
-;
-
 : .(  \ (s -- )
    [char] ) word count type
 ; immediate

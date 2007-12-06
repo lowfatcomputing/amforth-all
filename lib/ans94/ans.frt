@@ -14,9 +14,7 @@
     @ . ;
 
 : u.r ( u w -- )
-      >r  s>d <# #s #>  ( -- addr n )
-      r> over ( -- addr n w n )
-      - 0 max spaces type ;
+      >r s>d  <# #s #>  r> over - 0 max spaces type ;
 
 \ milliseconds
 : ms ( ms -- )
