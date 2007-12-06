@@ -507,11 +507,23 @@
         <title>Multitasking</title>
         <para>
           amforth does not really implement multitasking. It only
-          provides the basic operation for it. Within the IO words the
+          provides the basic functions for it. Within the IO words the
           word
           <command>PAUSE</command>
           is called whenever possible. This word is as a deferred word
           that is initialized to do nothing (NOOP).
+        </para>
+        <para>
+          The Library contains a cooperative multitasker (
+          <filename>multitask.frt</filename>
+          ). It is possible to use a timer interrupt to call the command
+          <command>pause</command>
+          and turn the cooperative multitasker into a preemptive one.
+          The latency is in the worst case that of the longest running
+          primitive forth command:
+          <command>1ms</command>
+          . For this kind of task switcher a lot more tools like
+          semaphores may be needed.
         </para>
       </sect2>
 
