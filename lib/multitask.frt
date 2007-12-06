@@ -6,8 +6,7 @@
 \ Subject: Re: Tiny OS based on byte-code interpreter
 \ Date: Fri, 17 Aug 2007 07:57:28 -0700
 
-\ PAUSE's TCB (task control block) structure
-\ is the user area.
+\ TCB (task control block) structure, identical to user area
 \ Offs_| _Name___ | __Description__________________________ |
 \   0  | status   | xt of word that resumes this task       | <-- UP
 \   2  | follower | address of the next task's status       |
@@ -15,7 +14,10 @@
 \   6  | SP0      | initial data stack pointer              |
 \   8  | sp       | -> top of stack                         |
 \  10  | handler  | catch/throw handler                     |
-\ ... more user variables
+\ ... more user variables (mostly IO related)
+
+\ please note that with amforth rp@ @ accesses another location 
+\ than r@ due to hardware characteristics.
 
 marker _multitask_
 
@@ -23,13 +25,6 @@ decimal
 
 0 user status
 2 user follower
-
-variable taskswitches
-variable passcounter
-variable wakecounter
-0 taskswitches !
-0 passcounter !
-0 wakecounter !
 
 :noname ( 'status1 -- 'status2 ) 
     cell+ @ dup @ 1+ >r 
@@ -54,16 +49,16 @@ variable wakecounter
 : activate ( tid -- )
    dup    6 + @ cell-
    over   4 + @ cell- ( -- tid sp rp )     \ point to RP0 SP0
-   r> over  !         ( save entry at rp ) \ skip all after ACTIVATE
-   1- over  !         (  save rp at sp )    \ save stack context for WAKE
+   r> over 1+ !       ( save entry at rp ) \ skip all after ACTIVATE
+      over  !         (  save rp at sp )   \ save stack context for WAKE
    over 8 + !         ( save sp in tos )
    task-awake 
 ;
 
-\ task:     creates the task data structures, leaves the tid on stack
+\ task      allocates stack space and creates the task control block
 \ alsotask  appends the tcb to the (circular, existing) list of TCB
 
-: task: ( rs-size ds-size -- tid )
+: task ( rs-size ds-size -- tid )
 	\ allocate stack memory
 	heap e@ >r   \ allocate user area
 	24 allot     \ default user size
@@ -79,9 +74,8 @@ variable wakecounter
 	['] rx0  over 18 + ! \ is key
 	['] rx0? over 20 + ! \ is key?
 	['] noop over 22 + ! \ is /key
-	2 allot
+	1 allot \ keep heap away
 ;
-
 
 \ stop multitasking
 : single ( -- ) \ initialize the multitasker with the serial terminal
@@ -119,14 +113,14 @@ variable wakecounter
     begin      ( -- tid1 ctid )
 	dup u. ( -- tid1 ctid )
 	dup @  ( -- tid1 ctid status )
-	  dup 
+            dup 
 	    wake = if ."   running" drop else
 	    pass = if ."  sleeping" else
 	              ."   unknown" then
 	then
-	dup 4 + @ ."   rp0=" dup u. cell- @ ."  TOR=" u.
-	dup 6 + @ ."   sp0=" dup u. cell- @ ."  TOS=" u.
-	dup 8 + @ ."    sp=" u.
+\	dup 4 + @ ."   rp0=" dup u. cell- @ ."  TOR=" u.
+\	dup 6 + @ ."   sp0=" dup u. cell- @ ."  TOS=" u.
+\	dup 8 + @ ."    sp=" u.
 	
 	cr
 	cell+ @ ( -- tid1 next-tid )
