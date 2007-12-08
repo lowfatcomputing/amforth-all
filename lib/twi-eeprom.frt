@@ -14,6 +14,7 @@ A0 value i2cee-addr    \ twi address of the eeprom
     1 or
 ;
 
+\ directly address a single byte
 : twi-c! ( c addr -- )
     \ send device address
     i2cee-addr
@@ -42,10 +43,21 @@ A0 value i2cee-addr    \ twi address of the eeprom
     twistop
 ;
 
-: twi-saveblock ( ramaddr blockaddr -- )
+\ work on a page. a page is the operational unit
+\ the eeprom works with internally. It's size is
+\ defined with i2cee-b/blk. The pages are numbered
+\ from 0 upward. page 1 has the starting address 
+\ i2cee-b/blk.
+
+: block2addr ( pagenumber -- pageaddress )
+    i2cee-b/blk log2 lshift ;
+;
+
+: twi-saveblock ( ramaddr pagenumber -- )
     i2cee-addr
     twistart    
     twitx 18 twistatus?
+    block2addr
     i2cee-b/blk 1- invert and \ mask the lower bits
     dup ><
     twitx 28 twistatus?
@@ -59,10 +71,11 @@ A0 value i2cee-addr    \ twi address of the eeprom
     twistop
 ;
 
-: twi-loadblock ( addr page -- )
+: twi-loadblock ( addr pagenumber -- )
     i2cee-addr
     twistart    
     twitx 18 twistatus?
+    block2addr
     i2cee-b/blk 1- invert and \ mask the lower bits
     dup ><
     twitx 28 twistatus?
