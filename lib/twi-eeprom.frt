@@ -1,98 +1,92 @@
 
 \ #include twi.frt
 
-\ _twieeprom_
+ _twieeprom_
 
 marker _twieeprom_
 
 hex
 
-A0 value i2cee-addr    \ twi address of the eeprom
-40 value i2cee-b/blk   \ bytes per block
+A0 value twi.ee-addr    \ twi address of the eeprom
+40 value twi.ee-b/blk   \ bytes per block
  
 : set-rw
     1 or
 ;
 
 \ directly address a single byte
-: twi-c! ( c addr -- )
+: twi.ee-c! ( c addr -- )
     \ send device address
-    i2cee-addr
-    twistart
-    twitx 18 twistatus?
+    twi.ee-addr
+    twi.start
+    twi.tx 18 twi.status?
     \ send eeprom cell address, high part first
     dup ><
-    twitx 28 twistatus?
-    twitx 28 twistatus?
+    twi.tx 28 twi.status?
+    twi.tx 28 twi.status?
     \ send data byte 
-    twitx 28 twistatus?
-    twistop
+    twi.tx 28 twi.status?
+    twi.stop
 ;
 
-: twi-c@ ( addr -- c )
-    i2cee-addr
-    twistart
-    twitx 18 twistatus?
+: twi.ee-c@ ( addr -- c )
+    twi.ee-addr
+    twi.start
+    twi.tx 18 twi.status?
     dup ><
-    twitx 28 twistatus?
-    twitx 28 twistatus?
+    twi.tx 28 twi.status?
+    twi.tx 28 twi.status?
     \ repeated start to read the data bye
-    twistart 10 twistatus?
-    i2cee-addr set-rw twitx 40 twistatus?
-    twirxn 58 twistatus?
-    twistop
+    twi.start 10 twi.status?
+    twi.ee-addr set-rw twi.tx 40 twi.status?
+    twi.rxn 58 twi.status?
+    twi.stop
 ;
 
 \ work on a page. a page is the operational unit
 \ the eeprom works with internally. It's size is
-\ defined with i2cee-b/blk. The pages are numbered
+\ defined in twi.ee-b/blk. The pages are numbered
 \ from 0 upward. page 1 has the starting address 
-\ i2cee-b/blk.
+\ twi.ee-b/blk.
 
 : block2addr ( pagenumber -- pageaddress )
-    i2cee-b/blk log2 lshift ;
+    twi.ee-b/blk log2 lshift ;
 ;
 
-: twi-saveblock ( ramaddr pagenumber -- )
-    i2cee-addr
-    twistart    
-    twitx 18 twistatus?
+: twi.ee-saveblock ( ramaddr pagenumber -- )
+    twi.ee-addr
+    twi.start    
+    twi.tx 18 twi.status?
     block2addr
-    i2cee-b/blk 1- invert and \ mask the lower bits
+    twi.ee-b/blk 1- invert and \ mask the lower bits
     dup ><
-    twitx 28 twistatus?
-    twitx 28 twistatus?
-    i2cee-b/blk 0 ?do
+    twi.tx 28 twi.status?
+    twi.tx 28 twi.status?
+    twi.ee-b/blk 0 ?do
 	dup 
-	c@ twitx 28 twistatus?
+	c@ twi.tx 28 twi.status?
 	1+
     loop
     drop
-    twistop
+    twi.stop
 ;
 
-: twi-loadblock ( addr pagenumber -- )
-    i2cee-addr
-    twistart    
-    twitx 18 twistatus?
+: twi.ee-loadblock ( addr pagenumber -- )
+    twi.ee-addr
+    twi.start    
+    twi.tx 18 twi.status?
     block2addr
-    i2cee-b/blk 1- invert and \ mask the lower bits
+    twi.ee-b/blk 1- invert and \ mask the lower bits
     dup ><
-    twitx 28 twistatus?
-    twitx 28 twistatus?
+    twi.tx 28 twi.status?
+    twi.tx 28 twi.status?
     \ repeated start to receive the data bytes
-    twistart 10 twistatus?
-    i2cee-addr set-rw twitx 40 twistatus?
-    i2cee-b/blk 1- 0 ?do
-	twirx 50 twistatus?
+    twi.start 10 twi.status?
+    twi.ee-addr set-rw twi.tx 40 twi.status?
+    twi.ee-b/blk 1- 0 ?do
+	twi.rx 50 twi.status?
 	over c! 1+
     loop
-    twirxn 58 twistatus? swap c!
-    twistop
+    twi.rxn 58 twi.status? swap c!
+    twi.stop
 ;
-
-\ twidefault
-
-\ up@ 0 twi-saveblock
-\ pad 0 twi-loadblock 
-\ pad i2cee-b/blk dump

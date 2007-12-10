@@ -1,17 +1,7 @@
-\ basic twi operations
+\ basic twi/I2C operations
 
-\ _twi_
-marker _twi_
-
-\ twi addresses for the ATmega32
-decimal
-86 constant TWCR
-35 constant TWDR
-34 constant TWAR
-33 constant TWSR
-32 constant TWBR
-19 constant TWSIaddr \ Irq. vector address for Two-Wire Interface
-
+ _twi_
+ marker _twi_
 
 hex
 
@@ -22,39 +12,31 @@ hex
 ;
 
 \ some random initialization. Works fine with 8 MHz
-: twidefault
+: twi.default
     7f 3 +twi ;
 
 \ turn off twi
 : -twi ( -- )
     0 TWCR c!
 ;
-
-
-TWCR 7 portpin: TWINT  \ signal TWI complete
-TWCR 6 portpin: TWEA   \ enable ACK 
-TWCR 5 portpin: TWSTA  \ send START condition
-TWCR 4 portpin: TWISTO \ send STOP condition
-TWCR 2 portpin: TWIEN
-
 \ wait for twi finish
-: twiwait ( -- )
+: twi.wait ( -- )
     begin
-        TWINT is_high?
+	TWCR c@ 80 and
     until
 ;
 
 \ send start condition
-: twistart ( -- )
+: twi.start ( -- )
     [ 1 7 lshift
       1 5 lshift or 
       1 2 lshift or ] literal
     TWCR c!
-    twiwait
+    twi.wait
 ;
 
 \ send stop condition
-: twistop ( -- )
+: twi.stop ( -- )
     [ 1 7 lshift
       1 4 lshift or 
       1 2 lshift or ] literal
@@ -62,52 +44,46 @@ TWCR 2 portpin: TWIEN
     \ no wait for completion.
 ;
 \ process the data 
-: twiaction
+: twi.action
     [
 	1 7 lshift 
 	1 2 lshift or
     ] literal or
     TWCR c!
-    twiwait
+    twi.wait
 ;
 
 \ send 1 byte via twi
-: twitx ( c -- )
+: twi.tx ( c -- )
     TWDR c!
-    0 twiaction
+    0 twi.action
 ;
 
 \ receive 1 byte, send ACK
-: twirx ( -- c )
+: twi.rx ( -- c )
     1 6 lshift  \ TWEA
-    twiaction
+    twi.action
     TWDR c@
 ;
 
 \ receive 1 byte, send NACK
-: twirxn ( -- c )
-    0 twiaction
+: twi.rxn ( -- c )
+    0 twi.action
     TWDR c@
 ;
 
-\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-\ \       switch to hex          \
-\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
-hex
-
 \ get twi status
-: twistatus ( -- n )
+: twi.status ( -- n )
     TWSR c@
     f8 and
 ;
 
 \ compare twi status with desired result, throw
 \ an exception if not met
-: twistatus?
-    twistatus over <> 
+: twi.status? ( -- )
+    twi.status over <> 
     if 
-	u. -3 throw 
+	u. -14 throw \ decimal -20, write to read-only location
     else
 	drop
     then
@@ -115,23 +91,24 @@ hex
 ;
 
 \ detect presence of a device on the bus
-: twi-ping?   ( addr -- f )
-    1 lshift
-    twistart 
-    twitx
-    twistatus 
+: twi.ping?   ( addr -- f )
+    twi.start 
+    twi.tx
+    twi.status 
     18 =
-    twistop 
+    twi.stop 
 ;
 
 \ detect presence of all possible devices on I2C bus
-: twi-scan-bus   ( -- )
-    7f 0 do
+\ only the 7 bit address schema is supported
+: twi.scan   ( -- )
+    ff 0 do
 	i dup          \ Test even addressess: write action only.
-        twi-ping? if            \ does device respond?
-            2* u. ."   found" cr
+        twi.ping? if            \ does device respond?
+            u. ."   found" cr
 	else
 	    drop 
         then
-    loop 
+    2
+    +loop 
 ;
