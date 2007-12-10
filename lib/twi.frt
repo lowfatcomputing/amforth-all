@@ -1,7 +1,7 @@
 \ basic twi/I2C operations
 
- _twi_
- marker _twi_
+\ _twi_
+\ marker _twi_
 
 hex
 

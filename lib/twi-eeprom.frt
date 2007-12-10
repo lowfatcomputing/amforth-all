@@ -1,9 +1,8 @@
 
 \ #include twi.frt
 
- _twieeprom_
-
-marker _twieeprom_
+\ _twieeprom_
+\ marker _twieeprom_
 
 hex
 
