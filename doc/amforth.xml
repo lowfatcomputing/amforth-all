@@ -1,13 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
 
 <!ENTITY REFCARD SYSTEM "refcard.xml">
 
 ]>
 
-<book status="draft">
+<book>
   <bookinfo>
-    <title>Forth for AVR ATmega microcontroller</title>
+    <title>amforth: Forth for AVR ATmega microcontroller</title>
     <author>
       <personname>
         <firstname>Matthias</firstname>
@@ -29,10 +29,11 @@
     <para>
       amforth is a Forth system for the AVR Atmega micro controller
       family. It works on the controller itself and does not depend on
-      any additional hard- or software.
+      any additional hard- or software. It places no restrictions on
+      using external hardware.
     </para>
 
-    <para>This document covers version 2.5</para>
+    <para>This document covers version 2.6</para>
 
     <para>
       amforth implements a large subset of the Forth standard ANS94.
@@ -506,24 +507,14 @@
       <sect2 id="MULTITASKING">
         <title>Multitasking</title>
         <para>
-          amforth does not really implement multitasking. It only
-          provides the basic functions for it. Within the IO words the
+          amforth does not implement multitasking directly. It only
+          provides the basic functions. Within the IO words the deferred
           word
           <command>PAUSE</command>
-          is called whenever possible. This word is as a deferred word
-          that is initialized to do nothing (NOOP).
-        </para>
-        <para>
-          The Library contains a cooperative multitasker (
-          <filename>multitask.frt</filename>
-          ). It is possible to use a timer interrupt to call the command
-          <command>pause</command>
-          and turn the cooperative multitasker into a preemptive one.
-          The latency is in the worst case that of the longest running
-          primitive forth command:
-          <command>1ms</command>
-          . For this kind of task switcher a lot more tools like
-          semaphores may be needed.
+          is called whenever possible. This word is initialized to do
+          nothing
+          <command>NOOP</command>
+          .
         </para>
       </sect2>
 
@@ -740,7 +731,7 @@
 
   </chapter>
 
-  <chapter id="Forth">
+  <chapter id="Implementation">
     <title>Forth Implementation</title>
     <sect1 id="ANS">
       <title>ANS Words</title>
@@ -929,16 +920,9 @@
           are implemented.
         </para>
         <para>
-          <command>-TRAILING</command>
-          ,
-          <command>BLANK</command>
-          ,
-          <command>CMOVE</command>
-          ,
-          <command>COMPARE</command>
-          and
-          <command>SEARCH</command>
-          are not implemented.
+          <command>-TRAILING</command>, <command>BLANK</command>,
+          <command>CMOVE</command>, <command>COMPARE</command>
+          and <command>SEARCH</command> are not implemented.
         </para>
       </sect2>
     </sect1>
@@ -948,9 +932,16 @@
         <title>MCU Access</title>
         <para>
           amforth provides wrapper words for the microcontroller words
-          sleep and wdr (watch dog reset). To work properly, the MCU
+          <command>sleep</command> and <command>wdr</command> 
+          (watch dog reset). To work properly, the MCU
           needs more configuration. amforth itself does not call these
           words.
+        </para>
+        <para>
+        	Microcontroller supporting the JTAG interface can be programmed
+        	to turn it off at runtime. Similiar the watch dog timer can be disabled. Since
+        	both actions require strict timing they need to be implemented as
+        	primitives: <command>-jtag</command> and <command>-wdt</command>. 
         </para>
       </sect2>
       <sect2 id="AMFORTH_MEMORY">
@@ -1058,7 +1049,148 @@
       </sect2>
     </sect1>
   </chapter>
+  <chapter id="Library">
+    <title>Library</title>
+      <para>
+        Amforth does not have a formal library concept. It contains a
+        lot of forth code that can be seen as a library of words and
+        commands.
+      </para>
+    <sect1 id="Hardware">
+      <title>Hardware Access</title>
+      <para></para>
+    </sect1>
+    <sect1 id="Modules">
+      <title>Software Modules</title>
+      <sect2 id="Multitasking">
+        <title>Multitasking</title>
+        <para>
+          The Library contains a cooperative multitasker in the file
+          <filename>multitask.frt</filename>
+          . It defines a command
+          <command>multitaskpause</command>
+          which can assigned to
+          <command>pause</command>
+          .
+        </para>
+        <para>
+          The multitasker has the following commands
+          <variablelist>
+            <varlistentry>
+              <term>
+                <cmdsynopsis>
+                  <command>onlytask</command>
+                  <arg choice="plain">(--)</arg>
+                </cmdsynopsis>
+              </term>
+              <listitem>
+                <para>
+                  Initialize the task system. The current task is placed
+                  as the only task in the task list.
+                </para>
+              </listitem>
+            </varlistentry>
 
+            <varlistentry>
+              <term>
+                <cmdsynopsis>
+                  <command>alsotask</command>
+                  <arg choice="plain">(tid --)</arg>
+                </cmdsynopsis>
+              </term>
+              <listitem>
+                <para>
+                  Append a newly created task to the task list. A
+                  running multitasker is temporarily stopped. Make sure
+                  that the status of the task is sleep.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>
+                <cmdsynopsis>
+                  <command>task</command>
+                  <arg choice="plain">
+                    ( dstacksize rstacksize -- tid )
+                  </arg>
+                </cmdsynopsis>
+              </term>
+              <listitem>
+                <para>
+                  Allocate RAM for the task control block (aka user
+                  area) and the two stacks. Initializes the whole user
+                  area to direct IO to the serial line. The task has
+                  still no code assoziated and is not inserted to the
+                  task list.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>
+                <cmdsynopsis>
+                  <command>task-sleep</command>
+                  <arg choice="plain">( tid --)</arg>
+                </cmdsynopsis>
+              </term>
+              <listitem>
+                <para>
+                  Let the (other) task sleep. The task switcher skips
+                  the task on the next round. When a task executes this
+                  command for itself, the task continues until the next
+                  call of pause.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>
+                <cmdsynopsis>
+                  <command>task-awake</command>
+                  <arg choice="plain">( tid --)</arg>
+                </cmdsynopsis>
+              </term>
+              <listitem>
+                <para>
+                  The task is put into runnable mode. It is not
+                  activated immediately.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>
+                <cmdsynopsis>
+                  <command>activate</command>
+                  <arg choice="plain">( tid --)</arg>
+                </cmdsynopsis>
+              </term>
+              <listitem>
+                <para>
+                  Skip all of the remaining code in the current colon
+                  word and continue the skipped code as a task.
+                </para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+        </para>
+        <para>
+          It is possible to use a timer interrupt to call the command
+          <command>pause</command>
+          and turn the cooperative multitasker into a preemptive one.
+          The latency is in the worst case that of the longest running
+          uninterruptable forth commands:
+          <command>1ms</command>
+          ,
+          <command>e!</command>
+          and
+          <command>i!</command>
+          . For a preemptive task switcher a lot more tools like
+          semaphores may be needed.
+        </para>
+      </sect2>
+    </sect1>
+
+  </chapter>
   <chapter id="Tools">
     <title>Tools</title>
     <sect1 id="Tools_host">
