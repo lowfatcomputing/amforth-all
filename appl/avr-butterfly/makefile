@@ -9,7 +9,7 @@ INCLUDE=-I ~/lib/avra -I $(AMFORTH)
 
 AVRASM=wine ~/projekte/avr/AvrAssembler2/avrasm2.exe -I ~/projekte/avr/AvrAssembler2/Appnotes
 
-USB=-c avr911  -P /dev/ttyUSB2
+USB=-c avr911  -P /dev/ttyUSB3
 PP=-c stk200  -P /dev/parport0
 JTAG=-c jtag2 -P /dev/ttyUSB2
 

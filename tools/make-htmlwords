@@ -11,7 +11,7 @@ my %DSTACK;
 my %RSTACK;
 
 my $htmldir="../doc/html/words";
-my $asmdir="../trunk/words";
+my $asmdir="../core/words";
 
 sub readASM {
     my ($filename) = @_;
