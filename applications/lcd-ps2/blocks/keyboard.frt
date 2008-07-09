@@ -1,7 +1,10 @@
 \ Keyboard PS/2 - Lubos Pekny, www.forth.cz
 \ Library for amforth 2.7
 
-\ V.1.0, 30.06.2008, tested on atmega32, amforth 2.7,
+\ V.1.1, 06.07.2008, changes in key->ps2, kbd_ascii, kbd_sync, appl_kbdlcd
+\ - optimalized restart and clk-sync
+
+\ V.1.0, 03.07.2008, tested on atmega32, amforth 2.7,
 \ - used INT2 + 1 pin
 \ - kbd_init  kbd_char  kbd_ekey?  kbd_ekey
 \ - ekey?  ekey  ekey>char  ekey>fkey  key?  key
@@ -255,7 +258,7 @@ end-code
     if swap drop exit then    \ -- 00, isn't visible char
     over K-CTRL-MASK and      \ -- u char, ctrl?
     if 
-      dup 3F > over 50 < and  \ 64<=char<80
+      dup 3F > over 60 < and  \ 64<=char<96, v.1.1 50->60
       if
         40 -                  \ -- char-64
       else
@@ -266,12 +269,46 @@ end-code
     if 80 + then ;            \ -- char+128    
 
 
+  \ int-, set b7 in kbd_CNTR, int+
+code kbd_b7set 
+  R18 push,
+  R18 3F in,          \ SREG 0x3F(0x5F)
+  R18 push,
+  cli,
+  R18 kbd_CNTR lds,   \ bit counter reg
+  R18 80 ori,         \ set b7
+  kbd_CNTR R18 sts,
+  sei,
+  R18 pop, 3F R18 out,
+  R18 pop,
+end-code
+
+
+  \ int-, b7=1? then clear kbd_CNTR, int+
+code kbd_b7tst 
+  R18 push,
+  R18 3F in,          \ SREG 0x3F(0x5F)
+  R18 push,
+  cli,
+
+  R18 kbd_CNTR lds,   \ bit counter reg
+  R18 rol,
+ adr> brcc,           \ b7=0? then end
+  R18 clr,
+  kbd_CNTR R18 sts,   \ clear bits counter
+
+ <labelb
+  sei,
+  R18 pop, 3F R18 out,
+  R18 pop,
+end-code
+
+
   \ sync clk - set bit, wait, int2 clear this bit
-: kbd_sync
-    kbd_CNTR dup c@ 80 or c!  \ set b7 in kbd_CNTR
-    15 ms
-    kbd_CNTR c@ 80 and        \ read b7 after 15ms
-    if kbd_CNTR 0 c! then ;   \ b7=1? then clear bit counter
+: kbd_sync ( -- )     \ v.1.1 15ms->3ms, int-, int+
+    kbd_b7set         \ set b7 in kbd_CNTR
+    3 ms
+    kbd_b7tst ;       \ b7=1? then clear bits counter
 
 
   \ keyboard events?, rd<>wr counter
@@ -356,7 +393,8 @@ end-code
   \ Switch key to ps2 keyboard
 : key->ps2 ( -- )
     ['] ps2key  ['] key  defer!
-    ['] ps2key? ['] key? defer! ;
+    ['] ps2key? ['] key? defer!
+    ['] noop    ['] /key defer! ; \ v.1.1 add /key
 
 
   \ Switch key to serial port
@@ -366,14 +404,17 @@ end-code
 
 
   \ Alone system PS2-keyboard+LCD20x4
+  \ PS2 keyboard started slowly. To delay amforth abouth 0.5s
 : appl_kbdlcd
+    200 ms \ v.1.1, to delay amforth or app restart
     kbd_init scr_init
     key->ps2 emit->scr
     ver ;
 
 
 \ Write to the eeprom appl started after switch on.
-' appl_kbdlcd is turnkey   \ PS2+LCD
+\ ' appl_kbdlcd 8 e!   \ PS2+LCD
+\ ' applturnkey 8 e!   \ UART0
 
 
 \ ----- Test key -----
