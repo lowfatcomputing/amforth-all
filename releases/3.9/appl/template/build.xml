@@ -1,0 +1,19 @@
+<!-- make multiple targets with antelope -->
+<project name="Template Project" basedir="." default="Help">
+        <import file="../avr-build.xml"/>
+
+	<target name="template.hex" description="Hexfiles for Template">
+		<echo>Producing Hexfiles</echo>
+		<avrasm2 projectname="template"/>
+	</target>
+
+	<target name="template" depends="template.hex" description="Template @ Template mHz">
+	        <echo>Uploading Hexfiles for Template</echo>
+		<avrdude 
+		    type="dragon"
+		    mcu="m16"
+		    flashfile="template.hex"
+		    eepromfile="template.eep.hex"
+		/>
+	</target>
+</project>

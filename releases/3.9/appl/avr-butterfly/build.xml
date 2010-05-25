@@ -1,0 +1,22 @@
+<!-- make multiple targets with antelope -->
+<project name="AVR Butterfly" basedir="." default="Help">
+
+    <import file="../avr-build.xml"/>
+    <target name="updatecheck">
+    	<uptodate  srcfile="bf.asm" targetfile="bf.hex" property="bf-hex"/>
+    </target>
+    <target name="bf.hex" unless="bf-hex" depends="updatecheck" description="Hexfiles for AVR Butterfly">
+        <echo>Producing Hexfiles</echo>
+        <avrasm2 projectname="bf"/>
+    </target>
+
+    <target name="bf" depends="bf.hex" description="AVR Butterfly: Atmega169 @ 8 MHz">
+        <echo>Uploading Hexfiles to the AVR Butterfly</echo>
+        <avrdude 
+		    type="mysmartusb"
+		    mcu="m169"
+		    flashfile="bf.hex"
+		    eepromfile="bf.eep.hex"
+		/>
+    </target>
+</project>
