@@ -3,10 +3,19 @@
 ; ############## IEEE 754 single precision ##############
 ; ############## f/ f* f+ f- words ######################
 ; v.1.0 Pito 16-9-2010
+; v.1.1 Pito 22-9-2010
+; 22-9-2010 BUG FIXED: FDIV shall use R0, R1 instead R8, R9
+;
 ; The library is provided as-is, no guarantees or/and warrantees of any kind
 ; are given, no liability of any kind is provided for any and all direct, 
-; indirect or consequent damages or losses caused by using this code ..
+; indirect or consequent damages or losses caused by using this software
+; library
 ;
+;  This program is free software; you can redistribute it and/or
+;  modify it under the terms of the GNU General Public License
+;  as published by the Free Software Foundation; using version 2
+;  of the License.
+
 ; Note:
 ; it may show you up to 116 warnings (template's register redefinition)
 ; the f/ and f* are dependent
@@ -18,11 +27,12 @@
 ; 3. compile amforth
 ; 4. flash it
 ; 5. load what you want
-; 6. load Leon's float.lib ( do not forget to cut-off 
-;    or comment-out the words f/ f* f+ f- !!)
+; 6. load Leon's float.lib ( !! DO NOT forget to cut-off 
+;    or comment-out the words f/ f* f+ f- in Leon's lib)
 ; 7. enjoy the speed!
 ;
-;
+; &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
 ; amforth 4.0
 ; Pito 16-9-2010
 ; ..core\words\f_div.asm
@@ -37,12 +47,10 @@ VE_FDIV:
 XT_FDIV:
     .dw PFA_FDIV
 PFA_FDIV:
-		
 		.cseg
-
 ; $$$ REDEFINITION $$$$$$$$$$$$$$$$$$$$$
-	.def	_tmp0 = R8
-	.def	_tmp1 = R9
+	.def	_tmp0 = R0
+	.def	_tmp1 = R1
 ;	.def	_tmp2 = Rx
 ;	.def	_tmp3 = Rx
 ;	.def	_tmp4 = Rx
@@ -76,31 +84,29 @@ PFA_FDIV:
 	.def	_tmp30 = R30		;30 Z  	Word used
 	.def	_tmp31 = R31		;31 Z
 ;  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 ; save registers
-
-	;push R0
-	;push R1
+	push R0
+	push R1
 	; R2 you may use, restore to 0	
 	; R3 you may use, restore to 0	
 	;push R4
 	;push R5
 	;push R6
 	;push R7
-	push R8
-	push R9
+	;push R8
+	;push R9
 	;push R10
 	;push R11
 	;push R12
 	push R13
-	push R14 ; you may use, no need to push/pop, = temp4
-	push R15 ; you may use, no need to push/pop, = temp5
-	push R16 ; you may use, no need to push/pop, = temp0
-	push R17 ; you may use, no need to push/pop, = temp1
-	push R18 ; you may use, no need to push/pop, = temp2
-	push R19 ; you may use, no need to push/pop, = temp3
-	push R20 ; you may use, no need to push/pop, = temp6
-	push R21 ; you may use, no need to push/pop, = temp7
+	;push R14 ; you may use, no need to push/pop, = temp4
+	;push R15 ; you may use, no need to push/pop, = temp5
+	;push R16 ; you may use, no need to push/pop, = temp0
+	;push R17 ; you may use, no need to push/pop, = temp1
+	;push R18 ; you may use, no need to push/pop, = temp2
+	;push R19 ; you may use, no need to push/pop, = temp3
+	;push R20 ; you may use, no need to push/pop, = temp6
+	;push R21 ; you may use, no need to push/pop, = temp7
 	push R22
 	push R23
 	; R24 do not push/pop, = tosl
@@ -109,10 +115,8 @@ PFA_FDIV:
 	push R27
 	; R28 do not use, = Y
 	; R29 do not use, = Y
-	push R30 
-	; R30 you may use, no need to push/pop, = Z
-	push R31 
-	; R31 you may use, no need to push/pop, = Z
+	push R30 	; R30 you may use, no need to push/pop, = Z
+	push R31 	; R31 you may use, no need to push/pop, = Z
 ;######################################################	
 ;main body
 ; Floating point B = A / B	
@@ -120,20 +124,18 @@ PFA_FDIV:
 ;     High        Low
 ; A = R25 R24 R27 R26  IN
 ; B = R23 R22 R31 R30  IN / OUT
-
 f_div:
 	; B and the result
 	mov _tmp22, tosl
 	mov _tmp23, tosh	
 	ld _tmp30, Y+
 	ld _tmp31, Y+
-	
 	; A	
 	ld _tmp24, Y+
 	ld _tmp25, Y+
 	ld _tmp26, Y+
 	ld _tmp27, Y+
-		
+
 	CALL __DIVF21
 
 	; B
@@ -225,7 +227,6 @@ __DIVF215:
 	RCALL __ROUND_REPACK
 	POP  _tmp21
 	RET
-
 ;######################################################		
 	
 end_fdiv:
@@ -239,18 +240,19 @@ end_fdiv:
 	pop R23
 	pop R22
 	
-	pop R21
-	pop R20
-	pop R19
-	pop R18
-	pop R17
-	pop R16
-	pop R15
-	pop R14
+	;pop R21
+	;pop R20
+	;pop R19
+	;pop R18
+	;pop R17
+	;pop R16
+	;pop R15
+	;pop R14
+	
 	pop R13
 
-	pop R9
-	pop R8
+	pop R1
+	pop R0
 			
    jmp_ DO_NEXT		; this is the end of the word "f_div"
    
@@ -271,11 +273,10 @@ VE_FMUL:
 XT_FMUL:
     .dw PFA_FMUL
 PFA_FMUL:
-
 		.cseg
 
 ; $$$ REDEFINITION $$$$$$$$$$$$$$$$$$$$$
-	.def	_tmp0 = R0   ; !!!! MULT USES IT !!!
+	.def	_tmp0 = R0   ; !!!! MULT AND DIV USES IT !!!
 	.def	_tmp1 = R1
 ;	.def	_tmp2 = Rx
 ;	.def	_tmp3 = Rx
@@ -310,9 +311,7 @@ PFA_FMUL:
 	.def	_tmp30 = R30		;30 Z  	Word used
 	.def	_tmp31 = R31		;31 Z
 ;  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 ; save registers
-
 	push R0
 	push R1
 	; R2 you may use, restore to 0	
@@ -326,14 +325,14 @@ PFA_FMUL:
 	;push R10
 	;push R11
 	push R13
-	push R14 ; you may use, no need to push/pop, = temp4
-	push R15 ; you may use, no need to push/pop, = temp5
-	push R16 ; you may use, no need to push/pop, = temp0
-	push R17 ; you may use, no need to push/pop, = temp1
-	push R18 ; you may use, no need to push/pop, = temp2
-	push R19 ; you may use, no need to push/pop, = temp3
-	push R20 ; you may use, no need to push/pop, = temp6
-	push R21 ; you may use, no need to push/pop, = temp7
+	;push R14 ; you may use, no need to push/pop, = temp4
+	;push R15 ; you may use, no need to push/pop, = temp5
+	;push R16 ; you may use, no need to push/pop, = temp0
+	;push R17 ; you may use, no need to push/pop, = temp1
+	;push R18 ; you may use, no need to push/pop, = temp2
+	;push R19 ; you may use, no need to push/pop, = temp3
+	;push R20 ; you may use, no need to push/pop, = temp6
+	;push R21 ; you may use, no need to push/pop, = temp7
 	push R22
 	push R23
 	; R24 do not push/pop, = tosl
@@ -342,18 +341,15 @@ PFA_FMUL:
 	push R27
 	; R28 do not use, = Y
 	; R29 do not use, = Y
-	push R30 
-	; R30 you may use, no need to push/pop, = Z
-	push R31 
-	; R31 you may use, no need to push/pop, = Z
+	push R30 ; R30 you may use, no need to push/pop, = Z
+	push R31 ; R31 you may use, no need to push/pop, = Z
 ;######################################################	
 ;main body
 ; Floating point B = A * B	
 ; IEEE 754
-;     High            Low
+;     High        Low
 ; A = R25 R24 R27 R26  IN
 ; B = R23 R22 R31 R30  IN/OUT
-
 f_mul:
 	; B and the result
 	mov _tmp22, tosl
@@ -385,20 +381,17 @@ __ROUND_REPACK:
 	BRNE __ROUND_REPACK0
 	SBRS _tmp30,0
 	RJMP __REPACK
-
 __ROUND_REPACK0:
 	ADIW _tmp30,1
 	ADC  _tmp22,_tmp25
 	ADC  _tmp23,_tmp25
 	BRVS __REPACK1
-
 __REPACK:
 	LDI  _tmp21,0x80
 	EOR  _tmp21,_tmp23
 	BRNE __REPACK0
 	PUSH _tmp21
 	RJMP __ZERORES
-
 __REPACK0:
 	CPI  _tmp21,0xFF
 	BREQ __REPACK1
@@ -408,16 +401,13 @@ __REPACK0:
 	ROR  _tmp22
 	MOV  _tmp23,_tmp21
 	RET
-
 __REPACK1:
 	PUSH _tmp21
 	TST  _tmp0
 	BRMI __REPACK2
 	RJMP __MAXRES
-
 __REPACK2:
 	RJMP __MINRES
-
 __UNPACK:
 	LDI  _tmp21,0x80
 	MOV  _tmp1,_tmp25
@@ -427,7 +417,6 @@ __UNPACK:
 	EOR  _tmp25,_tmp21
 	LSL  _tmp21
 	ROR  _tmp24
-
 __UNPACK1:
 	LDI  _tmp21,0x80
 	MOV  _tmp0,_tmp23
@@ -438,7 +427,6 @@ __UNPACK1:
 	LSL  _tmp21
 	ROR  _tmp22
 	RET
-
 __ZERORES:
 	CLR  _tmp30
 	CLR  _tmp31
@@ -446,7 +434,6 @@ __ZERORES:
 	CLR  _tmp23
 	POP  _tmp21
 	RET
-
 __MINRES:
 	SER  _tmp30
 	SER  _tmp31
@@ -454,7 +441,6 @@ __MINRES:
 	SER  _tmp23
 	POP  _tmp21
 	RET
-
 __MAXRES:
 	SER  _tmp30
 	SER  _tmp31
@@ -538,7 +524,6 @@ __MULF123:
 	RCALL __ROUND_REPACK
 	POP  _tmp21
 	RET
-
 __MULF127:
 	ADD  _tmp17,_tmp0
 	ADC  _tmp18,_tmp1
@@ -551,7 +536,6 @@ __MULF128:
 	ADC  _tmp20,_tmp25
 	ADC  _tmp21,_tmp25
 	RET
-
 ;######################################################		
 	
 end_fmul:
@@ -565,14 +549,15 @@ end_fmul:
 	pop R23
 	pop R22
 	
-	pop R21
-	pop R20
-	pop R19
-	pop R18
-	pop R17
-	pop R16
-	pop R15
-	pop R14
+	;pop R21
+	;pop R20
+	;pop R19
+	;pop R18
+	;pop R17
+	;pop R16
+	;pop R15
+	;pop R14
+	
 	pop R13
 
 	pop R1
@@ -584,7 +569,7 @@ end_fmul:
 
 ; amforth 4.0
 ; Pito 9-2010
-; ..core\words\f_mul.asm
+; ..core\words\f_add.asm
 ; ( a b --  c ) Function c = a + b
 ; R( ? -- ? )
 
@@ -635,9 +620,7 @@ PFA_FADD:
 	.def	_tmp30 = R30		;30 Z  	Word used
 	.def	_tmp31 = R31		;31 Z
 ;  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 ; save registers
-
 	;push R0
 	;push R1
 	; R2 you may use, restore to 0	
@@ -651,14 +634,14 @@ PFA_FADD:
 	;push R10
 	;push R11
 	push R13
-	push R14 ; you may use, no need to push/pop, = temp4
-	push R15 ; you may use, no need to push/pop, = temp5
-	push R16 ; you may use, no need to push/pop, = temp0
-	push R17 ; you may use, no need to push/pop, = temp1
-	push R18 ; you may use, no need to push/pop, = temp2
-	push R19 ; you may use, no need to push/pop, = temp3
-	push R20 ; you may use, no need to push/pop, = temp6
-	push R21 ; you may use, no need to push/pop, = temp7
+	;push R14 ; you may use, no need to push/pop, = temp4
+	;push R15 ; you may use, no need to push/pop, = temp5
+	;push R16 ; you may use, no need to push/pop, = temp0
+	;push R17 ; you may use, no need to push/pop, = temp1
+	;push R18 ; you may use, no need to push/pop, = temp2
+	;push R19 ; you may use, no need to push/pop, = temp3
+	;push R20 ; you may use, no need to push/pop, = temp6
+	;push R21 ; you may use, no need to push/pop, = temp7
 	push R22
 	push R23
 	; R24 do not push/pop, = tosl
@@ -667,18 +650,15 @@ PFA_FADD:
 	push R27
 	; R28 do not use, = Y
 	; R29 do not use, = Y
-	push R30 
-	; R30 you may use, no need to push/pop, = Z
-	push R31 
-	; R31 you may use, no need to push/pop, = Z
+	push R30 	; R30 you may use, no need to push/pop, = Z
+	push R31 	; R31 you may use, no need to push/pop, = Z
 ;######################################################	
 ;main body
 ; Floating point B = A + B	
 ; IEEE 754
-;     High            Low
+;     High        Low
 ; A = R25 R24 R27 R26  IN
 ; B = R23 R22 R31 R30  IN/OUT
-
 f_add:
 	; B and the result
 	mov _tmp22, tosl
@@ -703,7 +683,6 @@ f_add:
 	jmp end_fadd
 	
 ;########## DO NOT TOUCH >>> ####################################	
-
 	.CSEG
 __aREPACK:
 	LDI  _tmp21,0x80
@@ -727,7 +706,6 @@ __aREPACK1:
 	RJMP __aMAXRES
 __aREPACK2:
 	RJMP __aMINRES
-
 __aUNPACK:
 	LDI  _tmp21,0x80
 	MOV  _tmp1,_tmp25
@@ -737,7 +715,6 @@ __aUNPACK:
 	EOR  _tmp25,_tmp21
 	LSL  _tmp21
 	ROR  _tmp24
-
 __aUNPACK1:
 	LDI  _tmp21,0x80
 	MOV  _tmp0,_tmp23
@@ -748,7 +725,6 @@ __aUNPACK1:
 	LSL  _tmp21
 	ROR  _tmp22
 	RET
-	
 __SWAPACC:
 	PUSH R20
 	MOVW R20,_tmp30
@@ -762,13 +738,11 @@ __SWAPACC:
 	MOV  _tmp1,R20
 	POP  R20
 	RET
-
 __UADD12:
 	ADD  _tmp30,_tmp26
 	ADC  _tmp31,_tmp27
 	ADC  _tmp22,_tmp24
 	RET
-
 __NEGMAN1:
 	COM  _tmp30
 	COM  _tmp31
@@ -777,13 +751,11 @@ __NEGMAN1:
 	SBCI _tmp31,-1
 	SBCI _tmp22,-1
 	RET
-
 __ADDF12:
 	PUSH _tmp21
 	RCALL __aUNPACK
 	CPI  _tmp25,0x80
 	BREQ __ADDF129
-
 __ADDF120:
 	CPI  _tmp23,0x80
 	BREQ __ADDF128
@@ -854,7 +826,6 @@ __ADDF1210:
 	ROL  _tmp22
 	DEC  _tmp23
 	BRVC __ADDF1210
-
 __aZERORES:
 	CLR  _tmp30
 	CLR  _tmp31
@@ -862,7 +833,6 @@ __aZERORES:
 	CLR  _tmp23
 	POP  _tmp21
 	RET
-
 __aMINRES:
 	SER  _tmp30
 	SER  _tmp31
@@ -870,7 +840,6 @@ __aMINRES:
 	SER  _tmp23
 	POP  _tmp21
 	RET
-
 __aMAXRES:
 	SER  _tmp30
 	SER  _tmp31
@@ -878,7 +847,6 @@ __aMAXRES:
 	LDI  _tmp23,0x7F
 	POP  _tmp21
 	RET
-
 ;########## DO NOT TOUCH >>> ####################################	
 __SUBF12:
 	PUSH _tmp21
@@ -887,9 +855,7 @@ __SUBF12:
 	BREQ __ADDF129
 	LDI  _tmp21,0x80
 	EOR  _tmp1,_tmp21
-	
 	RJMP __ADDF120
-
 ;######################################################	
 ;######################################################		
 	
@@ -904,14 +870,15 @@ end_fadd:
 	pop R23
 	pop R22
 	
-	pop R21
-	pop R20
-	pop R19
-	pop R18
-	pop R17
-	pop R16
-	pop R15
-	pop R14
+	;pop R21
+	;pop R20
+	;pop R19
+	;pop R18
+	;pop R17
+	;pop R16
+	;pop R15
+	;pop R14
+	
 	pop R13
 
 	pop R9
@@ -976,9 +943,7 @@ PFA_FSUB:
 	.def	_tmp30 = R30		;30 Z  	Word used
 	.def	_tmp31 = R31		;31 Z
 ;  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 ; save registers
-
 	;push R0
 	;push R1
 	; R2 you may use, restore to 0	
@@ -992,14 +957,14 @@ PFA_FSUB:
 	;push R10
 	;push R11
 	push R13
-	push R14 ; you may use, no need to push/pop, = temp4
-	push R15 ; you may use, no need to push/pop, = temp5
-	push R16 ; you may use, no need to push/pop, = temp0
-	push R17 ; you may use, no need to push/pop, = temp1
-	push R18 ; you may use, no need to push/pop, = temp2
-	push R19 ; you may use, no need to push/pop, = temp3
-	push R20 ; you may use, no need to push/pop, = temp6
-	push R21 ; you may use, no need to push/pop, = temp7
+	;push R14 ; you may use, no need to push/pop, = temp4
+	;push R15 ; you may use, no need to push/pop, = temp5
+	;push R16 ; you may use, no need to push/pop, = temp0
+	;push R17 ; you may use, no need to push/pop, = temp1
+	;push R18 ; you may use, no need to push/pop, = temp2
+	;push R19 ; you may use, no need to push/pop, = temp3
+	;push R20 ; you may use, no need to push/pop, = temp6
+	;push R21 ; you may use, no need to push/pop, = temp7
 	push R22
 	push R23
 	; R24 do not push/pop, = tosl
@@ -1016,10 +981,9 @@ PFA_FSUB:
 ;main body
 ; Floating point B = A - B	
 ; IEEE 754
-;     High            Low
+;     High        Low
 ; A = R25 R24 R27 R26  IN
 ; B = R23 R22 R31 R30  IN/OUT
-
 f_sub:
 	; A	
 	mov _tmp24, tosl
@@ -1032,8 +996,6 @@ f_sub:
 	ld _tmp23, Y+	
 	ld _tmp30, Y+
 	ld _tmp31, Y+
-	
-
 
 	CALL __SUBF12
 
@@ -1052,18 +1014,20 @@ f_sub:
 	pop R23
 	pop R22
 	
-	pop R21
-	pop R20
-	pop R19
-	pop R18
-	pop R17
-	pop R16
-	pop R15
-	pop R14
+	;pop R21
+	;pop R20
+	;pop R19
+	;pop R18
+	;pop R17
+	;pop R16
+	;pop R15
+	;pop R14
+	
 	pop R13
 
 	pop R9
 	pop R8
 			
    jmp_ DO_NEXT		; this is the end of the word "f_sub"
-
+; &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+; %%%%%%%%%%%%%%%%% END OF LIBRARY %%%%%%%%%%%%%%%%%%%%%%
