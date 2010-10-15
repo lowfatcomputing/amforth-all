@@ -67,6 +67,12 @@ marker ->clean
 : f! ( f addr -- )
   swap over ! cell+ ! ;
 
+: (fliteral) ( -- f )
+  r@ 1+ i@ r@ i@ r> 2 + >r ;
+
+: fliteral ( f -- )
+  compile (fliteral) , , ; immediate
+
 \ MISC
 
 true not constant false
@@ -88,6 +94,38 @@ true not constant false
 
 : d0< ( d -- flag )
   nip 0< ;
+
+: d10* ( d -- d*10 )
+  10 * ( n-lower n-uppper*10 )
+  swap 10 um* ( n-uppper*10 d-lower*10 )
+  fnswap + ;
+
+: dreversedigits ( dinitial -- dfinal n-digits )
+  0 0 0 >r ( di df, R: digits )
+  begin
+    fover d0= not
+  while
+    fswap 10 ud/mod fnswap ( df di/10 rem, R: digits )
+    >r fswap d10* r> s>d d+ ( di/10 df*10+rem, R: digits )
+    r> 1+ >r \ updated digits
+  repeat
+  r> ;
+
+: dreversedigits2 ( dinitial n-digits -- dfinal )
+  dup 0= if
+    drop drop 0 0 \ 0 digits means dfinal = 0
+  else
+    0 0 fnswap 0 do ( dinitial dfinal )
+      fswap 10 ud/mod fnswap ( dfinal dinitial/10 rem )
+      >r fswap d10* r> s>d d+
+   loop
+  then ;
+
+: dtransferdigit ( d1 d2 -- d1*10+rem d2/10 )
+  10 ud/mod ( d1 rem d2/10 )
+  >r >r >r ( d1 R: d2/10 rem )
+  d10* r> s>d d+
+  r> r> ;
 
 \ negates d if it's negative and returns a flag saying whether it was negated
 \ or not
@@ -193,13 +231,21 @@ true not constant false
   dup 0> if 0 do flshift loop else drop then ;
 
 \ shifts until the exponent is the desired value
-: fshiftto ( d-significand n-exponent n-desired-exponent -- d n )
+: fshifttoexp ( d-significand n-exponent n-desired-exponent -- d n )
   over - dup abs swap 0> ( d n n-abs-diff n-diff )
   if 
     frshiftn
   else
     flshiftn
   then ;
+
+\ shifts significand until there is a 1 in the 'n-digit' digit -- the first
+\ digit corresponds to n-digit = 0
+\ INCOMPLETE
+: fshifttopos ( d-significand n-exponent n-digit -- d n )
+  >r 0 0 r> 0 ( d-significand n-exponent d-0 n-digit n-0 -- d n )
+
+  ;
 
 : sigexp>f ( d-significand n-exponent -- f )
 \ the plan is to first make the signficand positive and then shift it so that
@@ -252,13 +298,13 @@ true not constant false
 \ CONVERSION
 
 : d>f ( d -- f )
-  0 sigexp>f 23 faddtoexponent ;
+  23 sigexp>f ;
 
 : s>f ( n -- f )
   s>d d>f ;
 
 : f>d ( f -- d )
-  f>sigexp 23 fshiftto drop ;
+  f>sigexp 23 fshifttoexp drop ;
 
 : f>s ( f -- n )
   f>d d>s ;  
@@ -303,8 +349,8 @@ true not constant false
 \ pair
 : f+ ( f1 f2 -- f1+f2 )
   fover fexponent >r fdup fexponent r> max 6 - ( f1 f2 n-max-exp )
-  >r f>sigexp r@ fshiftto drop ( f1 d2, R: n-max )
-  fswap ( dfswap ) f>sigexp r@ fshiftto drop ( d2 d1, R: n-max)
+  >r f>sigexp r@ fshifttoexp drop ( f1 d2, R: n-max )
+  fswap ( dfswap ) f>sigexp r@ fshifttoexp drop ( d2 d1, R: n-max)
   d+ r> sigexp>f ;
 
 : f- ( f1 f2 -- f1-f2 )
@@ -354,71 +400,139 @@ true not constant false
 
 \ makes the exponent zero and returns the old exponent or what the exponent
 \ would have been for subnormal numbers.
-: fzeroexponent ( f -- f n )
-  fdup f0=
-  if \ it's zero, not much to do
-    0
-  else
-    0 nfswap \ will store the number of shifts ( n f )
+\ : fzeroexponent ( f -- f n )
+\  fdup f0=
+\  if \ it's zero, not much to do
+\    0
+\  else
+\    0 nfswap \ will store the number of shifts ( n f )
+\
+\    \ if it's subnormal, shift it left until it isn't
+\    begin
+\      fdup frawexponent -127 =
+\    while
+\      f2* fnswap 1+ nfswap
+\    repeat
+\
+\    fnswap >r ( f, R: n )  
+\    fdup fexponent >r 0 fsetexponent r> r> - 
+\  then ;
 
-    \ if it's subnormal, shift it left until it isn't
-    begin
-      fdup frawexponent -127 =
-    while
-      f2* fnswap 1+ nfswap
-    repeat
+\ : f/ ( f1 f2 -- f1/f2 )
+\  fdup f0= abort" division by zero "
+\
+\  fnegateifneg >r fswap fnegateifneg >r fswap
+\  r> r> xor >r ( f1 f2, R: flag-negative )
+\
+\  fzeroexponent >r ( f1 f2, R: negative n2 )
+\  fswap fzeroexponent r> - >r fswap ( f1 f2, R: negative n1-n2 )
+\  \ f1 will be known as remainder, f2 as divisor, and n1-n2 as exponent
+\  f0 frot frot ( sum remainder divisor, R: negative exponent )
+\  \ [ 0 128 0 sigexp>f ] is better than 0 16256
+\  \ but it gets bit by the double length number in colon definition bug
+\  0 16256 frot frot ( sum toadd remainder divisor, R: negative exponent )
+\
+\  \ floats only have 24 significant digits, but if f2>f1 then first digit is
+\  \ insignificant, so do 25 to be safe
+\  25 0 do 
+\    fover f0= if leave then \ no need to continue if remainder is zero
+\    fover fover f< not
+\    if \ remainder >= than divisor
+\      ftuck f- fswap
+\      >r >r >r >r ( sum toadd, R: negative exponent divisor remainder )
+\      ftuck f+ fswap
+\      r> r> r> r>
+\    then
+\    \ either way, half toadd and divisor
+\    f2/ >r >r >r >r f2/ r> r> r> r>
+\  loop
+\
+\  fdrop fdrop fdrop r> faddtoexponent
+\  r> if fnegate then ;
 
-    fnswap >r ( f, R: n )  
-    fdup fexponent >r 0 fsetexponent r> r> - 
-  then ;
+: fpreparefordivide ( f -- d n )
+  f>sigexp
+
+  \ get d so that it has a one in the 25th place
+  begin
+    >r dup 4096 < r> swap \ only need to look at upper part of d
+  while
+    flshift
+  repeat ;
 
 : f/ ( f1 f2 -- f1/f2 )
   fdup f0= abort" division by zero "
 
+  \ should the result be negative
   fnegateifneg >r fswap fnegateifneg >r fswap
   r> r> xor >r ( f1 f2, R: flag-negative )
 
-  fzeroexponent >r ( f1 f2, R: negative n2 )
-  fswap fzeroexponent r> - >r fswap ( f1 f2, R: negative n1-n2 )
-  \ f1 will be known as remainder, f2 as divisor, and n1-n2 as exponent
-  f0 frot frot ( sum remainder divisor, R: negative exponent )
-  \ [ 0 128 0 sigexp>f ] is better than 0 16256
-  \ but it gets bit by the double length number in colon definition bug
-  0 16256 frot frot ( sum toadd remainder divisor, R: negative exponent )
+  fpreparefordivide >r ( f1 d2, R: flag-negative n2 )
 
-  \ floats only have 24 significant digits, but if f2>f1 then first digit is
-  \ insignificant, so do 25 to be safe
-  25 0 do 
-    fover f0= if leave then \ no need to continue if remainder is zero
-    fover fover f< not
+  fswap fpreparefordivide ( d2 d1 n1, R: negative n2 )
+
+  \ also subtract 5 because everything shifted 5 to left
+  r> - 5 - >r fswap ( d1 d2, R: negative n1-n2 )
+
+  \ d1 will be known as remainder, d2 as divisor, and n1-n2 as exponent
+  \ put sum on the stack, initialized to zero
+  0 0 frot frot ( sum remainder divisor, R: negative exponent )
+  \ now, put in the thing we'll add
+  0 4096 frot frot ( sum toadd remainder divisor, R: negative exponent )
+
+  \ floats only have 24 significant digits, but if d2>d1 then first digit is
+  \ insignificant, so do 26 to be safe
+  26 0 do 
+    fover d0= if leave then \ no need to continue if remainder is zero
+    fover fover d< not
     if \ remainder >= than divisor
-      ftuck f- fswap
+      ftuck d- fswap
       >r >r >r >r ( sum toadd, R: negative exponent divisor remainder )
-      ftuck f+ fswap
+      ftuck d+ fswap
       r> r> r> r>
     then
     \ either way, half toadd and divisor
-    f2/ >r >r >r >r f2/ r> r> r> r>
+    d2/ >r >r >r >r d2/ r> r> r> r>
   loop
 
-  fdrop fdrop fdrop r> faddtoexponent
+  fdrop fdrop fdrop r> sigexp>f
   r> if fnegate then ;
 
 \ the greatest integer <= the float
 \ e.g. the floor of 3.5 is 3
 \ and the floor of -3.5 is -4
-\ the division in fshiftto gets rid of the fractional part
-: ffloor ( f -- f )
-  f>sigexp 23 fshiftto sigexp>f ;
+\ the division in fshifttoexp gets rid of the fractional part
+: floor ( f -- f )
+  f>sigexp 23 fshifttoexp sigexp>f ;
 
 \ the ceiling of x is -floor(-x)
-: fceil ( f -- f )
-  fnegate ffloor fnegate ;
+: ceil ( f -- f )
+  fnegate floor fnegate ;
 
 \ returns f mod 1 -- basically the fractional part of f
-\ fmod1(f) = f - ffloor(f)
+\ fmod1(f) = f - floor(f)
 : fmod1 ( f -- f )
-  fdup ffloor f- ;
+  fdup floor f- ;
+
+\ round to nearest integer
+: fround ( f -- f )
+  fdup fmod1 [ 1 s>f f2/ ] fliteral f<
+  if
+    floor
+  else
+    ceil
+  then ;
+
+\ returns d/10^n where n is the first integer such that 10^n > d
+\ for example, if d is 1234, then this returns .1234
+: d>fraction ( d -- f )
+  d>f
+  begin
+    fdup [ 1 s>f ] fliteral f>
+  while
+    [ 10 s>f ] fliteral f/
+  repeat ;
+
 
 \ print f using scientific notation
 \ this uses the dragon2 algorithm from
@@ -429,7 +543,7 @@ true not constant false
   \ handle zero seperately
   fdup f0=
   if
-    fdrop 48 46 48 emit emit emit \ prints "0.0"
+    fdrop 32 48 46 48 32 emit emit emit emit emit \ prints "0.0"
   else
     \ first, let's take care of the sign
     fdup f0<
@@ -442,59 +556,37 @@ true not constant false
     0 nfswap \ the 0 is the x in dragon2 algorithm
 
     \ if it's too large, make it smaller
-    \ THREE VERSIONS, PICK YOUR POISON
-\ SLOW BUT CLEAN:
-\    begin
-\      fdup [ 10 s>f swap ] literal literal f>=
-\    while
-\      [ 10 s>f swap ] literal literal f/ 
-\      fnswap 1+ nfswap
-\    repeat
-\ FAST AND CLEAN BUT WITH MORE ROUNDING ERRORS:
-\    begin
-\      fdup [ 10 s>f swap ] literal literal f>=
-\    while
-\      [ 1 s>f 10 s>f f/ swap ] literal literal f* 
-\      fnswap 1+ nfswap
-\    repeat
-\ GOOD COMPROMISE:
-    [ 1 s>f swap ] literal literal ( s-x f-v f-1 )
     begin
-      fover fover [ 10 s>f swap ] literal literal f* ( s-x f-v f-powerof10 f-v f-10*powerof10 )
-      fdup >r >r ( s-x f-v f-powerof10 f-v f-10*powerof10, R: f-10*powerof10 )
-      f>=
+      fdup [ 10 s>f ] fliteral f>=
     while
-      fdrop
+      [ 10 s>f ] fliteral f/ 
       fnswap 1+ nfswap
-      r> r>
     repeat
-    r> r> fdrop ( s-x f-v f-powerof10 )
-    f/
 
     \ if it's too small, make it bigger
     begin
-      fdup [ 1 s>f swap ] literal literal f<
+      fdup [ 1 s>f ] fliteral f<
     while
-      [ 10 s>f swap ] literal literal f*
+      [ 10 s>f ] fliteral f*
       fnswap 1- nfswap
     repeat
 
     \ the float on the stack is called v' in the dragon2 algorithm
 
-    fdup ffloor f>s emitdigit \ now we can print the first digit
+    fdup floor f>s emitdigit \ now we can print the first digit
     46 emit \ the decimal point
 
     \ calculate n = p - floor(log2(v')) - 1
     24 \ that's p - 1 since p is 25
-    nfover [ 2 s>f swap ] literal literal f> if 1-
-    nfover [ 4 s>f swap ] literal literal f> if 1-
-    nfover [ 8 s>f swap ] literal literal f> if 1- then then then
+    nfover [ 2 s>f ] fliteral f> if 1-
+    nfover [ 4 s>f ] fliteral f> if 1-
+    nfover [ 8 s>f ] fliteral f> if 1- then then then
     
     \ now the stack is ( s-x f-v' s-n )
 
     \ let's construct M = 2^(-n)/2 = 2^(-n-1)
     negate 1- >r
-    [ 1 s>f swap ] literal literal r> fsetexponent ( s-x f-v' f-M )
+    [ 1 s>f ] fliteral r> fsetexponent ( s-x f-v' f-M )
 
     \ don't care about k in algorithm since we'll just print immediatly
     \ R in algorithm is fractional part of v'
@@ -503,13 +595,13 @@ true not constant false
     \ in dragon2, use B=10 because that's the base we want
     begin
       \ calculate the digit (their U) and move to return stack
-      fdup [ 10 s>f swap ] literal literal f* ffloor f>s >r ( s-x f-M f-R, R: s-U )
+      fdup [ 10 s>f ] fliteral f* floor f>s >r ( s-x f-M f-R, R: s-U )
       \ update R
-      [ 10 s>f swap ] literal literal f* fmod1
+      [ 10 s>f ] fliteral f* fmod1
       \ update M
-      fswap [ 10 s>f swap ] literal literal f* fswap
+      fswap [ 10 s>f ] fliteral f* fswap
       fover fover f<= >r
-      fover [ 1 s>f swap ] literal literal f- fover fnegate f<=
+      fover [ 1 s>f ] fliteral f- fover fnegate f<=
       r> and
     while
       \ output the digit (their U )
@@ -517,7 +609,7 @@ true not constant false
     repeat
 
     \ take care of the final digit (their case statement)
-    r> nfover [ 1 s>f f2/ swap ] literal literal f>
+    r> nfover [ 1 s>f f2/ ] fliteral f>
     if 1+ then
     emitdigit
 
@@ -530,6 +622,157 @@ true not constant false
       bl emit \ otherwise, just print a space
     then
   then ;
+
+\ print f using scientific notation with n digits after the decimal point
+: fsn. ( f n -- )
+  >r ( f, R: n )
+  \ handle zero seperately
+  fdup f0=
+  if
+    fdrop 46 48 32 emit emit emit \ prints " 0."
+    \ the leading space makes it aligned with any "-" printed
+    r> 0 do 48 emit loop 32 emit \ prints "0" n times then a space
+  else
+    \ first, let's take care of the sign
+    fdup f0<
+    if
+      fnegate \ make it positive
+      45 emit \ print a "-"
+    else
+      32 emit \ print a " " so that it's aligned with any "-" printed
+    then
+
+    \ next, we scale the number to be in [1,10)
+    0 nfswap \ the 0 is the x in dragon2 algorithm
+
+    \ if it's too large, make it smaller
+    begin
+      fdup [ 10 s>f ] fliteral f>=
+    while
+      [ 10 s>f ] fliteral f/ 
+      fnswap 1+ nfswap
+    repeat
+
+    \ if it's too small, make it bigger
+    begin
+      fdup [ 1 s>f ] fliteral f<
+    while
+      [ 10 s>f ] fliteral f*
+      fnswap 1- nfswap
+    repeat
+
+    ( s-x f-v , R: n )
+
+    \ the float on the stack is called v' in the dragon2 algorithm
+
+    fdup floor f>s emitdigit \ now we can print the first digit
+    46 emit \ the decimal point
+    
+    \ now remove the integer part of v', yeilding M
+    fmod1 ( s-x f-M, R:n )
+
+    r> 0 do
+      [ 10 s>f ] fliteral f* \ multiply by 10 get make a new integer
+      fdup floor f>s emitdigit \ emit the integer
+      fmod1 \ get rid of it, leaving the remainder
+    loop
+
+    fdrop \ get rid of remainder
+
+    \ x has been waiting patiently at the bottom of the stack this whole time
+    ?dup if
+      69 emit . \ if it's non-zero, print "E" then print x
+    else
+      bl emit \ otherwise, just print a space
+    then
+  then ;
+
+\ COME UP WITH BETTER NAMES FOR NEXT TWO
+\ returns the number that occupies the part of the string from n-location + 1 to the end
+: partnumber ( n-adr n-length n-location -- n )
+  over over - 1- rot drop rot rot + swap ( new_adr new_length )
+  over dup
+  c@ >r ( store the value that was at n-location to the return stack )
+  c! ( store the length there to make a counted string )
+  dup number ( new_adr num, R: previous_value )
+  r> rot c! ; ( return the value to its previous place )
+
+: extract ( n-adr n-length c-char -- n-adr n-new-length n-extracted )
+  >r over over r> cscan nip ( adr count loc )
+  over over = 
+  if \ character not found
+    drop 0
+  else \ character found, note that loc becomes new-length
+    swap >r ( adr loc, R: length )
+    over over r> swap ( adr loc adr length loc )
+    partnumber 
+  then ;
+
+\ string of form 'integer'.'fractioal'e'exp'
+: string>float ( c-addr u-length -- f )
+  \ get exponent first -- this is the number that follows e, E, d, or D
+  101 extract dup 0= if drop \ 'e'
+  69 extract dup 0= if drop  \ 'E'
+  100 extract dup 0= if drop \ 'd'
+  68 extract dup 0=          \ 'D'
+  then then then
+
+  >r ( adr length, R: exp )
+  
+  \ next get fractional part -- 46 is '.'
+  46 extract >r ( adr length, R: exp fractional )
+  -1 partnumber ( integer, R: exp fractional )
+  s>f r> s>f ( f-integer f-fractional, R: exp )
+
+  \ make f-fractional a fraction
+  begin
+    fdup [ 1 s>f ] fliteral f>
+  while
+    [ 10 s>f ] fliteral f/
+  repeat
+  
+  \ combine fractional and integer parts
+  fover f0< if
+    f- \ integer part is negative, so fractional part should be too
+  else
+    f+ \ integer part is positive, so fractional part should be too
+  then
+
+  \ now, shift according to exp
+  r> dup 0=
+  if
+    drop
+  else
+    dup 0<
+    if
+      negate
+      0 do [ 10 s>f ] fliteral f/ loop
+    else
+      0 do [ 10 s>f ] fliteral f* loop
+    then
+  then ;
+
+: >float ( n-c-addr u-length -- f true | false)
+  ['] string>float catch
+  0=
+  if
+    true \ no error encounter -- we have a float
+  else
+    drop drop false \ couldn't make a float, clear the two inputs off the stack
+  then ;
+
+\ returns the current number of possible FP numbers on the data stack
+: fdepth ( -- n )
+  sp0 sp@ - 4 / ;
+
+\ Add the size in address units of a floating-point number to f-addr1,
+\ giving f-addr2
+: float+ ( f-addr1 -- f-addr2 )
+  4 + ;
+
+\ n2 is the size in address units of n1 floating-point numbers
+: floats ( n1 -- n2 )
+  4 * ;
 
 \ again, the next line is for convienence, not nescessity
 marker ->afterfloat
