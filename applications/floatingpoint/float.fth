@@ -628,7 +628,7 @@ true not constant false
   over dup
   c@ >r ( store the value that was at n-location to the return stack )
   c! ( store the length there to make a counted string )
-  dup number ( new_adr num, R: previous_value )
+  dup count number swap drop 0= if -13 throw then ( new_adr num, R: previous_value )
   r> rot c! ; ( return the value to its previous place )
 
 \ the last returned value is true if the charcter was found, and false if not
