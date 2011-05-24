@@ -1,0 +1,62 @@
+<!-- make multiple targets with antelope -->
+<project name="ForthDuino" basedir="." default="Help">
+        <import file="../avr-build.xml"/>
+
+	<target name="mega.hex" description="Hexfiles for Arduino Mega Board www.arduino.cc">
+		<avrasm2 projectname="mega" mcu="atmega1280"/>
+	</target>
+
+	<target name="mega" depends="mega.hex" description="Arduino Mega Board www.arduino.cc">
+	        <echo>Uploading Hexfiles to Arduino Mega</echo>
+		<avrdude 
+		    type="avrisp2"
+		    mcu="m1280"
+		    flashfile="mega.hex"
+		    eepromfile="mega.eep.hex"
+		/>
+	</target>
+
+	<target name="sanguino.hex" description="Hexfiles for Sanguino Board sanguino.cc">
+		<avrasm2 projectname="sanguino" mcu="atmega644p"/>
+	</target>
+
+	<target name="sanguino" depends="sanguino.hex" description="Sangiono Board sanguino.cc">
+	        <echo>Uploading Hexfiles to Arduino Mega</echo>
+		<avrdude 
+		    type="avrisp2"
+		    mcu="m644p"
+		    flashfile="sanguino.hex"
+		    eepromfile="sanguino.eep.hex"
+		/>
+	</target>
+
+	<target name="duemilanove.hex" description="Hexfiles for Arduino Duemilanove Board www.arduino.cc">
+		<avrasm2 projectname="duemilanove" mcu="atmega328p"/>
+	</target>
+
+	<target name="duemilanove" depends="duemilanove.hex" description="Arduino Duemilanove Board www.arduino.cc">
+	        <echo>Uploading Hexfiles to Arduino Duemilanove</echo>
+		<avrdude 
+		    type="avrisp2"
+		    mcu="m328p"
+		    flashfile="duemilanove.hex"
+		    eepromfile="duemilanove.eep.hex"
+		/>
+	</target>
+	<target name="diecimila.hex" description="Hexfiles for Arduino Diecimila Board www.arduino.cc">
+		<avrasm2 projectname="diecimila" mcu="atmega168"/>
+	</target>
+
+	<target name="diecimila" depends="diecimila.hex" description="Arduino Diecimila Board www.arduino.cc">
+	        <echo>Uploading Hexfiles to Arduino Diecimila</echo>
+		<avrdude 
+		    type="avrisp2"
+		    mcu="m168"
+		    flashfile="diecimila.hex"
+		    eepromfile="diecimila.eep.hex"
+		/>
+	</target>
+
+    <target name="compile" depends="sanguino.hex, mega.hex, duemilanove.hex">
+    </target>
+</project>
