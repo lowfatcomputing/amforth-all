@@ -744,6 +744,11 @@ true not constant false
 : floats ( n1 -- n2 )
   4 * ;
 
+\ recognizer is a feature that is available for amforth 4.3 and up
+: rec-float count >float 
+  if state @ if postpone fliteral then -1 else 0 then 
+;
+ 
 \ again, the next line is for convienence, not nescessity
 marker ->afterfloat
 
