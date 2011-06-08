@@ -56,7 +56,7 @@ variable seed
 : 2c@		dup 1+ c@ swap c@ ;
 : 2c!		dup >r c! r> 1+ c! ;
 
-: d<>		d= not ;
+\ : d<>		d= not ;
 
 
 \ Drawing primitives:
