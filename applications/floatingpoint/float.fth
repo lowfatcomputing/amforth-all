@@ -98,8 +98,8 @@ true not constant false
   0= swap 0= and ;
 
 \ wasn't installed by default, so add it if you haven't included it
-\ : d= ( d1 d2 -- flag )
-\   d- d0= ;
+: d= ( d1 d2 -- flag )
+  d- d0= ;
 
 : d0< ( d -- flag )
   nip 0< ;
@@ -624,12 +624,8 @@ true not constant false
 \ COME UP WITH BETTER NAMES FOR NEXT TWO
 \ returns the number that occupies the part of the string from n-location + 1 to the end
 : partnumber ( n-adr n-length n-location -- n )
-  over over - 1- rot drop rot rot + swap ( new_adr new_length )
-  over dup
-  c@ >r ( store the value that was at n-location to the return stack )
-  c! ( store the length there to make a counted string )
-  dup count number swap drop 0= if -13 throw then ( new_adr num, R: previous_value )
-  r> rot c! ; ( return the value to its previous place )
+  swap over - 1- rot rot + 1+ swap ( new_adr new_length )
+  number nip 0= if -13 throw then ;
 
 \ the last returned value is true if the charcter was found, and false if not
 : extract ( n-adr n-length c-char -- n-adr n-new-length n-extracted true|false )
@@ -645,14 +641,17 @@ true not constant false
 
 \ the plan is to first get the exponent (if there is one)
 \ then we take care of the sign, if any
-\ next, we find the location of the decimal point (if there is one)
-\ and combine that with the exponent to get the equivilent number
-\ if there were no decimal point (e.g. 12.3e-1 = 123e-2)
-\ then we take in the number as a double, ignoring the decimal signficand
-\ and stopping before the double overflows -- since the float only has
-\ 23 bits, a double holds more than enough significant digits
-\ this is converted to a float then we divide or multiply by the appropriate
-\ power of 10 to get the exponent right and restore the sign
+\ next, we start storing the digits in to a double while keeping track
+\ of the exponent. For example 12.34e will get turned in to the double
+\ 1234, so we need to decriment the exponent by two (one for each digit
+\ after the decimal place) to get the right answer. If the double fills
+\ up, then we stop since the double has more significant digits than a
+\ float has. If the float fills up before we get to the decimal place,
+\ then we have to add one to the exponent for every digit before the
+\ decimal place we miss.
+\ the double is then converted to a float, which we divide or multiply
+\ by the appropriate power of 10 to get the exponent right
+\ finially, we restore the sign
 
 \ string of form 'integer'.'fractioal'e'exp'
 : string>float ( c-addr u-length -- f )
@@ -677,59 +676,70 @@ true not constant false
     1- swap 1+ swap ( adr+1 length-1, R: bool-isneg exp)
   then
 
-  \ look for a '.'
-  over over 46 cscan nip ( adr length decimal-point-location, R: bool-isneg exp)
-  over - \ will yeild 0 if no '.', -1 if '.' after all numbers,
-         \ -2 if one number after, etc.
-  dup 0< if 1+ then \ so add one if it's not 0
-  r> + >r ( adr length, R: bool-isneg new-exp)
+  r> rot rot ( exp adr length, R: bool-isneg )
 
-  [ 0. ] fliteral fnswap ( adr d-0 length, R: bool-isneg exp)
+  [ 0. ] fliteral fnswap ( exp adr d-0 length, R: bool-isneg )
+  >r false nfswap r> ( exp adr bool-after_decimal d-0 length, R: bool-isneg )
 
-  0 do ( adr d-0 )
-    fdup [ 214748364. ] fliteral d> if leave then \ d-sum is basically full
-
+  0 do ( exp adr bool-after_decimal d-0 )
     \ get next character
-    fnover i + c@ ( adr d-sum char )
-
+    fover drop i + c@ ( exp adr bool-after_decimal d-sum char )
     dup 46 = if \ it's a '.'
-      drop \ don't do anything
+      drop \ get rid of character
+      fnover if \ we've already encountered a decimal point
+        abort
+      then
+      \ we're after the decimal now, so make bool-after_decimal true
+      fnswap drop true nfswap ( exp adr bool-after_decimal d-sum )
     else
-      48 - ( adr d-sum possible-digit )
-      dup 0 < ( adr d-sum pd bool )
-      over 9 > ( adr d-sum pd bool bool )
-      or if abort then \ it's not a digit, abort
-      ( adr d-sum digit )
-      >r d10* r> s>d d+ ( adr d-sum )
+      nfover [ 214748364. ] fliteral d> if \ d-sum can't hold any more
+        drop \ don't care about character
+        fnover not if
+          \ we're before the decimal place, so add one to the exponent
+          >r >r >r >r 1+ r> r> r> r>
+        else
+          leave \ there's nothing left to do if we're after the decimal place
+        then
+      else
+        48 - ( exp adr bool-after_decimal d-sum possible-digit )
+        dup 0 < ( exp adr bool-after_decimal d-sum pd bool )
+        over 9 > ( exp adr bool-after_decimal d-sum pd bool bool )
+        or if abort then \ it's not a digit, abort
+        ( exp adr bool-after_decimal d-sum digit )
+        >r d10* r> s>d d+ ( exp adr bool-after_decimal d-sum )
+        fnover if ( exp adr bool-after_decimal d-sum )
+          >r >r >r >r 1- r> r> r> r> \ decriment the exponent by one
+        then
+      then
     then
-  loop ( adr d-sum, R: bool-isneg exp)
+  loop ( exp adr bool-after_decimal d-sum, R: bool-isneg )
 
-  fnswap drop d>f ( f-sum, R: bool-isneg exp)
+  >r >r drop drop r> r> ( exp d-sum, R: bool-isneg )
 
-  r@ 0= if  \ if exp is 0
-    r> drop \ get rid of exp off return stack
-  else
-    [ 1 s>f ] fliteral
-    r@ abs 0 do
+  d>f fnswap ( f-sum exp, R: bool-isneg )
+
+  ?dup if \ if the exponent isn't zero, adjust the float to match the exp
+    [ 1 s>f ] fliteral ( f-sum exp f-1)
+    fnover abs 0 do
       [ 10 s>f ] fliteral f*
     loop
 
-    ( f-sum 10^abs[exp], R: bool-isneg exp )
+    ( f-sum exp 10^abs[exp], R: bool-isneg )
 
-    r> 0< if f/ else f* then
+    fnswap 0< if f/ else f* then
   then ( f-num, R: bool-isneg )
 
   \ take care of negative sign
   r> if fnegate then ;
 
+
 : >float ( n-c-addr u-length -- f true | false)
   ['] string>float catch
-  0=
-  if
+  0= if
     true \ no error encounter -- we have a float
   else
     drop drop false \ couldn't make a float, clear the two inputs off the stack
-  then ;
+ then ;
 
 \ returns the current number of possible FP numbers on the data stack
 : fdepth ( -- n )
@@ -743,12 +753,21 @@ true not constant false
 \ n2 is the size in address units of n1 floating-point numbers
 : floats ( n1 -- n2 )
   4 * ;
-
+ 
 \ recognizer is a feature that is available for amforth 4.3 and up
 : rec-float count >float 
-  if state @ if postpone fliteral then -1 else 0 then 
+  if
+    state @ if
+      postpone fliteral
+    then
+    -1
+  else
+    0
+  then 
 ;
- 
+
+\ ' rec-float place-rec
+
 \ again, the next line is for convienence, not nescessity
 marker ->afterfloat
 
