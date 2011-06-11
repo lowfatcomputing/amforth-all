@@ -755,7 +755,8 @@ true not constant false
   4 * ;
  
 \ recognizer is a feature that is available for amforth 4.3 and up
-: rec-float count >float 
+\ since 4.5 counted strings are replaced by addr/len information
+: rec-float >float 
   if
     state @ if
       postpone fliteral
