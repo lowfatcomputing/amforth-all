@@ -29,7 +29,7 @@
 : filter_mean:
   create ( id -- )
     ,      \ store id in dictionary entry
-    heap , \ store next RAM addr
+    here , \ store next RAM addr
     5 cells allot \ create RAM space
   does>  ( -- id ram_addr )
     dup i@
